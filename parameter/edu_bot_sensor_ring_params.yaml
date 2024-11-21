@@ -10,8 +10,8 @@
         auto_min_max: true
         use_eeprom_file: true
         use_calibration_file: true
-        eeprom_file_dir: "/home/pi/ros2_ws/src/sensor_ring/calibration"
-        calibration_file_dir: "/home/pi/ros2_ws/src/sensor_ring/calibration"
+        eeprom_file_dir: "/home/pi/sensorring/calibration"
+        calibration_file_dir: "/home/pi/sensorring/calibration"
         scale_t_min_deg: 20.0
         scale_t_max_deg: 35.0
       topology:

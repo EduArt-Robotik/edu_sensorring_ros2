@@ -56,7 +56,7 @@ int SensorRingProxy::run(measurementmanager::MeasurementManagerParams params){
 	_pc2_msg.fields = {field_x, field_y, field_z, field_sigma};
 
 	// create pointCloud2 publisher
-	_pointcloud_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors_raw", 1);
+	_pointcloud_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
 
 	// prepare one image publisher for each active thermal sensor
 	int i = 0;
@@ -146,7 +146,17 @@ int SensorRingProxy::run(measurementmanager::MeasurementManagerParams params){
 	// force first state update
 	onStateChange(_manager->getWorkerState());
 
-	return _manager->startMeasuring();
+	int error = _manager->startMeasuring();
+
+	if(error == 0){
+		while(!_shutdown && rclcpp::ok()){
+			rclcpp::spin_some(shared_from_this());
+		}
+
+		error = _manager->stopMeasuring();
+	}
+
+	return error;
 };
 
 void SensorRingProxy::onStateChange(const WorkerState state){
