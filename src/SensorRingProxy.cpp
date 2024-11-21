@@ -19,7 +19,7 @@ SensorRingProxy::~SensorRingProxy(){
 };
 
 int SensorRingProxy::run(measurementmanager::MeasurementManagerParams params){
-	_manager = std::make_unique<measurementmanager::MeasurementManager>(params);
+	_manager = std::make_unique<measurementmanager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
 
 	// prepare pointCloud2 message
 	_pc2_msg = sensor_msgs::msg::PointCloud2();
@@ -139,9 +139,6 @@ int SensorRingProxy::run(measurementmanager::MeasurementManagerParams params){
 	// set up ros services
 	auto stop_cali_srv	= this->create_service<sensorring_ros2::srv::StopThermalCalibration>(std::string(this->get_name()) + "/stopThermalCalibration", std::bind(&SensorRingProxy::stopThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
 	auto start_cali_srv	= this->create_service<sensorring_ros2::srv::StartThermalCalibration>(std::string(this->get_name()) + "/startThermalCalibration", std::bind(&SensorRingProxy::startThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
-
-	// register this observer at the MeasurementManager
-	_manager->registerObserver(this);
 
 	// force first state update
 	onStateChange(_manager->getWorkerState());
