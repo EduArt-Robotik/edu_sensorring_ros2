@@ -1,4 +1,5 @@
-#pragma once
+
+
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -15,13 +16,17 @@
 
 namespace sensorring{
 
-class SensorRingProxy : public rclcpp::Node, TofObserver, ThermalObserver, LogObserver{
+class SensorRingProxy : public rclcpp::Node, MeasurementObserver{
 public:
     SensorRingProxy(std::string node_name);
 
     ~SensorRingProxy();
 
     int run(measurementmanager::MeasurementManagerParams params);
+
+    bool isShutdown();
+
+    void onStateChange(const WorkerState state) override;
 
     void onTofMeasurement(const measurement::TofSensorMeasurement measurement) override;
 
@@ -36,6 +41,7 @@ private:
     void startThermalCalibration(const std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Request> request,
                                 std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Response> response);
     
+    bool _shutdown;
     measurementmanager::MeasurementManagerParams _params;
     std::unique_ptr<measurementmanager::MeasurementManager> _manager;
 

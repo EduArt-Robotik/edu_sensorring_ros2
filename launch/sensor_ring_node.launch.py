@@ -3,6 +3,7 @@ import yaml
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch.actions import ExecuteProcess, Shutdown
 
 from launch.substitutions import EnvironmentVariable, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
@@ -23,7 +24,8 @@ def generate_launch_description():
       parameters=[parameter_file],
       #prefix='gdbserver localhost:3000',
       #namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
-      output='screen'
+      output='screen',
+      on_exit=Shutdown()
     )
 
     # base_link to base_sensor_ring

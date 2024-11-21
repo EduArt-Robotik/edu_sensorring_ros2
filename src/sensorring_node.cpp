@@ -131,7 +131,13 @@ int main (int argc, char* argv[]){
 	// Run ros node
 	manager_params.ring_params = ring_params;
 	int success = measurement_node->run(manager_params);
-	rclcpp::shutdown();
+	
+	if(success == 0){
+		while(rclcpp::ok() && !measurement_node->isShutdown()){
+			rclcpp::spin_some(measurement_node);
+		}
+		rclcpp::shutdown();
+	}
 	
 	return success;
 }
