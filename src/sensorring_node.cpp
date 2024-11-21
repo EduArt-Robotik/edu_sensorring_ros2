@@ -33,7 +33,7 @@ int main (int argc, char* argv[]){
 	measurement_node->declare_parameter(param_namespace + ".thermal_config.scale_t_max_deg", 25.0);
 	measurement_node->declare_parameter(param_namespace + ".topology.nr_of_interfaces", 1);
 
-	std::string tf_name					= measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
+	ring_params.tf_name					= measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
 	manager_params.print_topology       = measurement_node->get_parameter(param_namespace + ".base_setup.print_topology").as_bool();
 	manager_params.frequency_tof_hz     = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_tof_hz").as_double();
 	manager_params.frequency_thermal_hz = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_thermal_hz").as_double();

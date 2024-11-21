@@ -30,7 +30,7 @@ public:
 
     void onTofMeasurement(const measurement::TofSensorMeasurement measurement) override;
 
-    void onThermalMeasurement(const measurement::ThermalSensorMeasurement measurement) override;
+    void onThermalMeasurement(const std::size_t idx, const measurement::ThermalSensorMeasurement measurement) override;
 
     void onOutputLog(const LogVerbosity verbosity, const std::string msg) override;
 
@@ -42,7 +42,6 @@ private:
                                 std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Response> response);
     
     bool _shutdown;
-    measurementmanager::MeasurementManagerParams _params;
     std::unique_ptr<measurementmanager::MeasurementManager> _manager;
 
     sensor_msgs::msg::PointCloud2 _pc2_msg;
