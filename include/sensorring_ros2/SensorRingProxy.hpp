@@ -22,15 +22,15 @@ public:
 
     ~SensorRingProxy();
 
-    int run(measurementmanager::MeasurementManagerParams params);
+    int run(manager::ManagerParams params);
 
     bool isShutdown();
 
     void onStateChange(const WorkerState state) override;
 
-    void onTofMeasurement(const measurement::TofSensorMeasurement measurement) override;
+    void onTofMeasurement(const measurement::TofMeasurement measurement) override;
 
-    void onThermalMeasurement(const std::size_t idx, const measurement::ThermalSensorMeasurement measurement) override;
+    void onThermalMeasurement(const std::size_t idx, const measurement::ThermalMeasurement measurement) override;
 
     void onOutputLog(const LogVerbosity verbosity, const std::string msg) override;
 
@@ -42,7 +42,7 @@ private:
                                 std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Response> response);
     
     bool _shutdown;
-    std::unique_ptr<measurementmanager::MeasurementManager> _manager;
+    std::unique_ptr<manager::MeasurementManager> _manager;
 
     sensor_msgs::msg::PointCloud2 _pc2_msg;
     std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub;

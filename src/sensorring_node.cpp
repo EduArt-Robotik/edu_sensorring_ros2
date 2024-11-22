@@ -8,18 +8,18 @@
 
 
 int main (int argc, char* argv[]){
-
-	// Init ROS
+	
 	rclcpp::init(argc, argv);
-	RCLCPP_INFO(rclcpp::get_logger("sensor_ring"), "Starting the sensor ring node");
+	ring::RingParams ring_params;
 
 	// Create SensorRing Node
-	sensorring::SensorRingParams ring_params;
 	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("sensor_ring");
+	RCLCPP_INFO(measurement_node->get_logger(), "Starting the sensor ring node");
 
 	// Get SensorRing parameters
-	measurementmanager::MeasurementManagerParams manager_params;
+	manager::ManagerParams manager_params;
 	std::string param_namespace = "point_cloud_sensor";
+	measurement_node->declare_parameter(param_namespace + ".base_setup.timeout_ms", 1000);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.tf_name", "base_sensor_ring");
 	measurement_node->declare_parameter(param_namespace + ".base_setup.print_topology", true);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.frequency_tof_hz", 5.0);
@@ -33,6 +33,7 @@ int main (int argc, char* argv[]){
 	measurement_node->declare_parameter(param_namespace + ".thermal_config.scale_t_max_deg", 25.0);
 	measurement_node->declare_parameter(param_namespace + ".topology.nr_of_interfaces", 1);
 
+	ring_params.timeout					= std::chrono::milliseconds(measurement_node->get_parameter(param_namespace + ".base_setup.timeout_ms").as_int());
 	ring_params.tf_name					= measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
 	manager_params.print_topology       = measurement_node->get_parameter(param_namespace + ".base_setup.print_topology").as_bool();
 	manager_params.frequency_tof_hz     = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_tof_hz").as_double();
@@ -50,7 +51,7 @@ int main (int argc, char* argv[]){
 	param_namespace += ".topology.can_interfaces";
 	for(int i=0; i<nr_of_can_interfaces; i++){
 
-		sensorbus::SensorBusParams bus_params;
+		bus::BusParams bus_params;
 
 		// Get SensorBus parameters
 		std::string interface_param_name = ".can_interface_" + std::to_string(i);
@@ -81,7 +82,6 @@ int main (int argc, char* argv[]){
 			bool enable_thermal      = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".get_thermal").as_bool();
 
 			sensor::TofSensorParams tof_params;
-			tof_params.idx                  = j;
 			std::vector<double> rotation    = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".rotation").as_double_array();
 			std::vector<double> translation = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".translation").as_double_array();
 
@@ -98,7 +98,6 @@ int main (int argc, char* argv[]){
 			}
 			
 			sensor::ThermalSensorParams thermal_params;
-			thermal_params.idx          		= j;
 			thermal_params.rotation     		= tof_params.rotation; // ToDo: The pose of the thermal sensor is not the pose of the tof sensor. Need to add an offset.
 			thermal_params.translation  		= tof_params.translation;
 			thermal_params.orientation			= orientation;
@@ -107,10 +106,10 @@ int main (int argc, char* argv[]){
 			thermal_params.use_calibration_file = thermal_use_calibration_file;
 			thermal_params.eeprom_dir			= thermal_eeprom_dir;
 			thermal_params.calibration_dir		= thermal_calibration_dir;
-			thermal_params.t_min				= thermal_t_min;
-			thermal_params.t_max				= thermal_t_max;
+			thermal_params.t_min_deg_c			= thermal_t_min;
+			thermal_params.t_max_deg_c			= thermal_t_max;
 
-			sensor::LedLightParams led_params;
+			sensor::LightParams led_params;
 			led_params.orientation = orientation;
 					
 			// Create sensor board

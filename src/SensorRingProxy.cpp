@@ -18,8 +18,8 @@ SensorRingProxy::~SensorRingProxy(){
 	_manager->stopMeasuring();
 };
 
-int SensorRingProxy::run(measurementmanager::MeasurementManagerParams params){
-	_manager = std::make_unique<measurementmanager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
+int SensorRingProxy::run(manager::ManagerParams params){
+	_manager = std::make_unique<manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
 
 	// prepare pointCloud2 message
 	_pc2_msg = sensor_msgs::msg::PointCloud2();
@@ -179,7 +179,7 @@ bool SensorRingProxy::isShutdown(){
 	return _shutdown;
 }
 
-void SensorRingProxy::onTofMeasurement(const measurement::TofSensorMeasurement measurement){
+void SensorRingProxy::onTofMeasurement(const measurement::TofMeasurement measurement){
 	if(measurement.size > 0){
 
 		_pc2_msg.header.stamp  = this->now();
@@ -201,7 +201,7 @@ void SensorRingProxy::onTofMeasurement(const measurement::TofSensorMeasurement m
 	}
 };
 
-void SensorRingProxy::onThermalMeasurement(const std::size_t idx, const measurement::ThermalSensorMeasurement measurement){
+void SensorRingProxy::onThermalMeasurement(const std::size_t idx, const measurement::ThermalMeasurement measurement){
 	// prepare and publish grayscale image
 	const std::uint8_t* temp_data_ptr  = measurement.grayscale_img.data.begin();
 	auto img_msg = _img_msg_vec.at(idx);
