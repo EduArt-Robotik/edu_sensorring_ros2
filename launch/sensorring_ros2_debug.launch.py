@@ -1,4 +1,4 @@
-import os
+ros2_wsimport os
 import yaml
 
 from launch import LaunchDescription
@@ -14,7 +14,7 @@ def generate_launch_description():
     parameter_file = PathJoinSubstitution([
       package_path,
       'parameter',
-      'edu_bot_sensor_ring_params.yaml'
+      'edu_bot_sensorring_params.yaml'
     ])
 
     sensorring = Node(

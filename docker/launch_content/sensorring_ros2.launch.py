@@ -10,11 +10,9 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
    
-    package_path = FindPackageShare('sensorring_ros2')
     parameter_file = PathJoinSubstitution([
-      package_path,
-      'parameter',
-      'edu_bot_sensor_ring_params.yaml'
+      '.',
+      'edu_bot_sensorring_params.yaml'
     ])
 
     sensorring = Node(

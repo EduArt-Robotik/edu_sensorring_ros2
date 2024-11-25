@@ -1,9 +1,9 @@
 services:
     sensor_ring:
         build:
-          context: ../..
-          dockerfile: ./sensor_ring/docker/Dockerfile
-        container_name: sensor_ring-1.0.0
+          context: ../../../../
+          dockerfile: ./ros2_ws/src/sensorring_ros2/docker/Dockerfile
+        container_name: sensorring_ros2-0.1.0
         user: user
         restart: always
         privileged: true
@@ -15,9 +15,9 @@ services:
             - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
             - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
         network_mode: "host"
-        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch sensor_ring_node.launch.py'
-        #command: /bin/bash
-        #stdin_open: true
+        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch sensorring_ros2.launch.py'
+        # command: /bin/bash
+        # stdin_open: true
         volumes:
             - './launch_content:/home/user/ros/launch_content'
             - './../calibration:/home/user/ros/calibration'
