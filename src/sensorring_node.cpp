@@ -10,14 +10,16 @@
 int main (int argc, char* argv[]){
 	
 	rclcpp::init(argc, argv);
+	
+	std::string tf_name;
 	ring::RingParams ring_params;
+	manager::ManagerParams manager_params;
 
 	// Create SensorRing Node
 	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("sensor_ring");
 	RCLCPP_INFO(measurement_node->get_logger(), "Starting the sensor ring node");
 
 	// Get SensorRing parameters
-	manager::ManagerParams manager_params;
 	std::string param_namespace = "point_cloud_sensor";
 	measurement_node->declare_parameter(param_namespace + ".base_setup.timeout_ms", 1000);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.tf_name", "base_sensor_ring");
@@ -34,8 +36,8 @@ int main (int argc, char* argv[]){
 	measurement_node->declare_parameter(param_namespace + ".topology.nr_of_interfaces", 1);
 
 	ring_params.timeout					= std::chrono::milliseconds(measurement_node->get_parameter(param_namespace + ".base_setup.timeout_ms").as_int());
-	ring_params.tf_name					= measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
-	manager_params.print_topology       = measurement_node->get_parameter(param_namespace + ".base_setup.print_topology").as_bool();
+	tf_name								= measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
+	manager_params.print_topology	    = measurement_node->get_parameter(param_namespace + ".base_setup.print_topology").as_bool();
 	manager_params.frequency_tof_hz     = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_tof_hz").as_double();
 	manager_params.frequency_thermal_hz = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_thermal_hz").as_double();
 	bool thermal_auto_min_max			= measurement_node->get_parameter(param_namespace + ".thermal_config.auto_min_max").as_bool();
@@ -123,13 +125,12 @@ int main (int argc, char* argv[]){
 
 			bus_params.board_param_vec.push_back(board_params);
 		}
-
 		ring_params.bus_param_vec.push_back(bus_params);
 	}
+	manager_params.ring_params = ring_params;
 
 	// Run ros node
-	manager_params.ring_params = ring_params;
-	int success = measurement_node->run(manager_params);
+	bool success = measurement_node->run(manager_params, tf_name);
 	rclcpp::shutdown();
 	
 	return success;

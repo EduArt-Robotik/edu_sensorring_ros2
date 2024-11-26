@@ -1,4 +1,4 @@
-ros2_wsimport os
+import os
 import yaml
 
 from launch import LaunchDescription
@@ -22,6 +22,7 @@ def generate_launch_description():
       executable='sensorring_ros2_node',
       name='sensorring_ros2_node',
       parameters=[parameter_file],
+      #arguments=['--ros-args', '--log-level', 'DEBUG'],
       prefix='gdbserver localhost:3000',
       #namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
       output='screen',

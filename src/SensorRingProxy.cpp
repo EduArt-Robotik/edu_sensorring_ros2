@@ -15,17 +15,17 @@ Node(node_name), MeasurementObserver(), _shutdown(false) {
 };
     
 SensorRingProxy::~SensorRingProxy(){
-	_manager->stopMeasuring();
+
 };
 
-int SensorRingProxy::run(manager::ManagerParams params){
+bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name){
 	_manager = std::make_unique<manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
 
 	// prepare pointCloud2 message
 	_pc2_msg = sensor_msgs::msg::PointCloud2();
-	_pc2_msg.header.frame_id = _manager->getParams().ring_params.tf_name;
+	_pc2_msg.header.frame_id = tf_name;
 	_pc2_msg.height        = 1;
-	_pc2_msg.point_step    = 4 * 4; // Dimensions per zone * bytes per dimension (float32 -> 4 bytes) // ToDo: remove magic number for float/double size
+	_pc2_msg.point_step    = 4 * sizeof(float); // Dimensions per zone (x,y,z,sigma) * bytes per dimension (float32 -> 4 bytes)
 	_pc2_msg.is_bigendian  = true;
 	_pc2_msg.is_dense      = true;
 
@@ -115,7 +115,7 @@ int SensorRingProxy::run(manager::ManagerParams params){
 
 			geometry_msgs::msg::TransformStamped t;
 			t.header.stamp = this->now();
-			t.header.frame_id = _manager->getParams().ring_params.tf_name;
+			t.header.frame_id = tf_name;
 			t.child_frame_id = "sensor_" + std::to_string(i);
 
 			t.transform.translation.x = sensor_board.tof_params.translation.x();
@@ -143,17 +143,17 @@ int SensorRingProxy::run(manager::ManagerParams params){
 	// force first state update
 	onStateChange(_manager->getWorkerState());
 
-	int error = _manager->startMeasuring();
+	bool success = _manager->startMeasuring();
 
-	if(error == 0){
+	if(success){
 		while(!_shutdown && rclcpp::ok()){
 			rclcpp::spin_some(shared_from_this());
 		}
 
-		error = _manager->stopMeasuring();
+		success = _manager->stopMeasuring();
 	}
 
-	return error;
+	return static_cast<int>(success);
 };
 
 void SensorRingProxy::onStateChange(const WorkerState state){
@@ -169,7 +169,7 @@ void SensorRingProxy::onStateChange(const WorkerState state){
 			_shutdown = true;
 			break;
 		case WorkerState::Error:
-			RCLCPP_INFO(this->get_logger(), "New MeasurementManager state: error");
+			RCLCPP_ERROR(this->get_logger(), "New MeasurementManager state: error");
 			_shutdown = true;
 			break;
 	}
@@ -252,4 +252,4 @@ void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<sensorring_
 	response->output = _manager->startThermalCalibration((std::size_t)request->window);
 };
 
-}; // namespace sensorring
+};
