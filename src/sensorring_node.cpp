@@ -16,13 +16,13 @@ int main (int argc, char* argv[]){
 	manager::ManagerParams manager_params;
 
 	// Create SensorRing Node
-	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("sensor_ring");
-	RCLCPP_INFO(measurement_node->get_logger(), "Starting the sensor ring node");
+	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("sensorring");
+	RCLCPP_INFO(measurement_node->get_logger(), "Starting the sensorring node");
 
 	// Get SensorRing parameters
-	std::string param_namespace = "point_cloud_sensor";
+	std::string param_namespace = "pointcloud_sensor";
 	measurement_node->declare_parameter(param_namespace + ".base_setup.timeout_ms", 1000);
-	measurement_node->declare_parameter(param_namespace + ".base_setup.tf_name", "base_sensor_ring");
+	measurement_node->declare_parameter(param_namespace + ".base_setup.tf_name", "base_sensorring");
 	measurement_node->declare_parameter(param_namespace + ".base_setup.print_topology", true);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.frequency_tof_hz", 5.0);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.frequency_thermal_hz", 1.0);
@@ -90,13 +90,13 @@ int main (int argc, char* argv[]){
 			if(rotation.size() == 3){
 				std::copy_n(rotation.begin(), 3, tof_params.rotation.data.begin());
 			}else{
-				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensor_ring"), "Rotation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
+				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensorring"), "Rotation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
 			}
 
 			if(translation.size() == 3){
 				std::copy_n(translation.begin(), 3, tof_params.translation.data.begin());
 			}else{
-				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensor_ring"), "Translation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
+				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensorring"), "Translation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
 			}
 			
 			sensor::ThermalSensorParams thermal_params;
@@ -133,5 +133,5 @@ int main (int argc, char* argv[]){
 	bool success = measurement_node->run(manager_params, tf_name);
 	rclcpp::shutdown();
 	
-	return success;
+	return success ? 0 : 1;
 }
