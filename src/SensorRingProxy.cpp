@@ -18,8 +18,8 @@ SensorRingProxy::~SensorRingProxy(){
 
 };
 
-bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name){
-	_manager = std::make_unique<manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
+bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_name){
+	_manager = std::make_unique<eduart::manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
 
 	// prepare pointCloud2 message
 	_pc2_msg = sensor_msgs::msg::PointCloud2();
@@ -62,7 +62,7 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name){
 	int i = 0;
 	for(auto sensor_bus : _manager->getParams().ring_params.bus_param_vec){
 		for(auto sensor_board : sensor_bus.board_param_vec){
-			if(sensor_board.enable_thermal){
+			if(sensor_board.thermal_params.enable){
 
 				// =================== Temperature image ===================
 				std::string sensor_name = "thermal_sensor_" + std::to_string(i) + "/grayscale";
@@ -156,19 +156,19 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name){
 	return static_cast<int>(success);
 };
 
-void SensorRingProxy::onStateChange(const WorkerState state){
+void SensorRingProxy::onStateChange(const eduart::manager::WorkerState state){
 	switch(state){
-		case WorkerState::Initialized:
+		case eduart::manager::WorkerState::Initialized:
 			RCLCPP_DEBUG(this->get_logger(), "New MeasurementManager state: initialized");
 			break;
-		case WorkerState::Running:
+		case eduart::manager::WorkerState::Running:
 			RCLCPP_DEBUG(this->get_logger(), "New MeasurementManager state: running");
 			break;
-		case WorkerState::Shutdown:
+		case eduart::manager::WorkerState::Shutdown:
 			RCLCPP_INFO(this->get_logger(), "New MeasurementManager state: shutdown");
 			_shutdown = true;
 			break;
-		case WorkerState::Error:
+		case eduart::manager::WorkerState::Error:
 			RCLCPP_ERROR(this->get_logger(), "New MeasurementManager state: error");
 			_shutdown = true;
 			break;
@@ -179,7 +179,7 @@ bool SensorRingProxy::isShutdown(){
 	return _shutdown;
 }
 
-void SensorRingProxy::onTofMeasurement(const measurement::TofMeasurement measurement){
+void SensorRingProxy::onTofMeasurement(const eduart::measurement::TofMeasurement measurement){
 	if(measurement.size > 0){
 
 		_pc2_msg.header.stamp  = this->now();
@@ -201,7 +201,7 @@ void SensorRingProxy::onTofMeasurement(const measurement::TofMeasurement measure
 	}
 };
 
-void SensorRingProxy::onThermalMeasurement(const std::size_t idx, const measurement::ThermalMeasurement measurement){
+void SensorRingProxy::onThermalMeasurement(const std::size_t idx, const eduart::measurement::ThermalMeasurement measurement){
 	// prepare and publish grayscale image
 	const std::uint8_t* temp_data_ptr  = measurement.grayscale_img.data.begin();
 	auto img_msg = _img_msg_vec.at(idx);
@@ -221,18 +221,18 @@ void SensorRingProxy::onThermalMeasurement(const std::size_t idx, const measurem
 	_colorimg_pub_vec[idx]->publish(*colorimg_msg);
 };
 
-void SensorRingProxy::onOutputLog(const LogVerbosity verbosity, const std::string msg){
+void SensorRingProxy::onOutputLog(const eduart::logger::LogVerbosity verbosity, const std::string msg){
 	switch(verbosity){
-		case LogVerbosity::Debug:
+		case eduart::logger::LogVerbosity::Debug:
 			RCLCPP_DEBUG(this->get_logger(), msg.c_str());
 			break;
-		case LogVerbosity::Info:
+		case eduart::logger::LogVerbosity::Info:
 			RCLCPP_INFO(this->get_logger(), msg.c_str());
 			break;
-		case LogVerbosity::Warning:
+		case eduart::logger::LogVerbosity::Warning:
 			RCLCPP_WARN(this->get_logger(), msg.c_str());
 			break;
-		case LogVerbosity::Error:
+		case eduart::logger::LogVerbosity::Error:
 			RCLCPP_ERROR(this->get_logger(), msg.c_str());
 			break;
 	}

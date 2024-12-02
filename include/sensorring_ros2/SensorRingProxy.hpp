@@ -16,23 +16,23 @@
 
 namespace sensorring{
 
-    class SensorRingProxy : public rclcpp::Node, MeasurementObserver{
+    class SensorRingProxy : public rclcpp::Node, eduart::manager::MeasurementObserver{
     public:
         SensorRingProxy(std::string node_name);
 
         ~SensorRingProxy();
 
-        bool run(manager::ManagerParams params, std::string tf_name);
+        bool run(eduart::manager::ManagerParams params, std::string tf_name);
 
         bool isShutdown();
 
-        void onStateChange(const WorkerState state) override;
+        void onStateChange(const eduart::manager::WorkerState state) override;
 
-        void onTofMeasurement(const measurement::TofMeasurement measurement) override;
+        void onTofMeasurement(const eduart::measurement::TofMeasurement measurement) override;
 
-        void onThermalMeasurement(const std::size_t idx, const measurement::ThermalMeasurement measurement) override;
+        void onThermalMeasurement(const std::size_t idx, const eduart::measurement::ThermalMeasurement measurement) override;
 
-        void onOutputLog(const LogVerbosity verbosity, const std::string msg) override;
+        void onOutputLog(const eduart::logger::LogVerbosity verbosity, const std::string msg) override;
 
     private:
 
@@ -42,7 +42,7 @@ namespace sensorring{
                                     std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Response> response);
         
         bool _shutdown;
-        std::unique_ptr<manager::MeasurementManager> _manager;
+        std::unique_ptr<eduart::manager::MeasurementManager> _manager;
 
         sensor_msgs::msg::PointCloud2 _pc2_msg;
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub;

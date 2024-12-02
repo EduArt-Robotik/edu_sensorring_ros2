@@ -12,8 +12,8 @@ int main (int argc, char* argv[]){
 	rclcpp::init(argc, argv);
 	
 	std::string tf_name;
-	ring::RingParams ring_params;
-	manager::ManagerParams manager_params;
+	eduart::ring::RingParams ring_params;
+	eduart::manager::ManagerParams manager_params;
 
 	// Create SensorRing Node
 	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("sensorring");
@@ -53,7 +53,7 @@ int main (int argc, char* argv[]){
 	param_namespace += ".topology.can_interfaces";
 	for(int i=0; i<nr_of_can_interfaces; i++){
 
-		bus::BusParams bus_params;
+		eduart::bus::BusParams bus_params;
 
 		// Get SensorBus parameters
 		std::string interface_param_name = ".can_interface_" + std::to_string(i);
@@ -65,9 +65,9 @@ int main (int argc, char* argv[]){
 		std::string orientation_str = measurement_node->get_parameter(param_namespace + interface_param_name + ".orientation").as_string();
 		bus_params.interface_name	= measurement_node->get_parameter(param_namespace + interface_param_name + ".interface_name").as_string();
 
-		sensor::SensorOrientation orientation		= sensor::SensorOrientation::none;
-		if (orientation_str == "left")  orientation = sensor::SensorOrientation::left;
-		if (orientation_str == "right") orientation = sensor::SensorOrientation::right;
+		eduart::sensor::Orientation orientation		= eduart::sensor::Orientation::none;
+		if (orientation_str == "left")  orientation	= eduart::sensor::Orientation::left;
+		if (orientation_str == "right") orientation	= eduart::sensor::Orientation::right;
 
 		// Get parameters for every sensor on the current can interface
 		interface_param_name += ".sensors";
@@ -75,17 +75,21 @@ int main (int argc, char* argv[]){
 			
 			// Get parameters for the current sensor board
 			std::string sensor_param_name = ".sensor_" + std::to_string(j);
-			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".get_tof", true);
-			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".get_thermal", false);
+			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".enable_tof", true);
+			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".enable_thermal", false);
+			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".enable_light", false);
 			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".rotation", std::vector<double>{0.0,0.0,0.0});
 			measurement_node->declare_parameter(param_namespace + interface_param_name + sensor_param_name + ".translation", std::vector<double>{0.0,0.0,0.0});
 
-			bool enable_tof          = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".get_tof").as_bool();
-			bool enable_thermal      = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".get_thermal").as_bool();
+			bool enable_tof		= measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".enable_tof").as_bool();
+			bool enable_thermal	= measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".enable_thermal").as_bool();
+			bool enable_light	= measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".enable_light").as_bool();
 
-			sensor::TofSensorParams tof_params;
 			std::vector<double> rotation    = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".rotation").as_double_array();
 			std::vector<double> translation = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".translation").as_double_array();
+
+			eduart::sensor::TofSensorParams tof_params;
+			tof_params.enable = enable_tof;
 
 			if(rotation.size() == 3){
 				std::copy_n(rotation.begin(), 3, tof_params.rotation.data.begin());
@@ -99,7 +103,8 @@ int main (int argc, char* argv[]){
 				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensorring"), "Translation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
 			}
 			
-			sensor::ThermalSensorParams thermal_params;
+			eduart::sensor::ThermalSensorParams thermal_params;
+			thermal_params.enable				= enable_thermal;
 			thermal_params.rotation     		= tof_params.rotation; // ToDo: The pose of the thermal sensor is not the pose of the tof sensor. Need to add an offset.
 			thermal_params.translation  		= tof_params.translation;
 			thermal_params.orientation			= orientation;
@@ -111,14 +116,12 @@ int main (int argc, char* argv[]){
 			thermal_params.t_min_deg_c			= thermal_t_min;
 			thermal_params.t_max_deg_c			= thermal_t_max;
 
-			sensor::LightParams led_params;
+			eduart::sensor::LightParams led_params;
+			led_params.enable = enable_light;
 			led_params.orientation = orientation;
 					
 			// Create sensor board
-			sensor::SensorBoardParams board_params;
-			board_params.idx			= j;
-			board_params.enable_tof     = enable_tof;
-			board_params.enable_thermal = enable_thermal;
+			eduart::sensor::SensorBoardParams board_params;
 			board_params.tof_params     = tof_params;
 			board_params.thermal_params = thermal_params;
 			board_params.led_params     = led_params;
