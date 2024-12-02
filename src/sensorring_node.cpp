@@ -16,7 +16,7 @@ int main (int argc, char* argv[]){
 	eduart::manager::ManagerParams manager_params;
 
 	// Create SensorRing Node
-	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("sensorring");
+	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("edu_sensorring_ros2");
 	RCLCPP_INFO(measurement_node->get_logger(), "Starting the sensorring node");
 
 	// Get SensorRing parameters
