@@ -10,7 +10,7 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
    
-    package_path = FindPackageShare('sensorring_ros2')
+    package_path = FindPackageShare('edu_sensorring_ros2')
     parameter_file = PathJoinSubstitution([
       package_path,
       'parameter',
@@ -18,9 +18,9 @@ def generate_launch_description():
     ])
 
     sensorring = Node(
-      package='sensorring_ros2',
-      executable='sensorring_ros2_node',
-      name='sensorring_ros2_node',
+      package='edu_sensorring_ros2',
+      executable='edu_sensorring_ros2_node',
+      name='edu_sensorring_ros2_node',
       parameters=[parameter_file],
       #arguments=['--ros-args', '--log-level', 'DEBUG'],
       prefix='gdbserver localhost:3000',

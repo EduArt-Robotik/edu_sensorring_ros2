@@ -4,8 +4,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/image.hpp"
-#include "sensorring_ros2/srv/start_thermal_calibration.hpp"
-#include "sensorring_ros2/srv/stop_thermal_calibration.hpp"
+#include "edu_sensorring_ros2/srv/start_thermal_calibration.hpp"
+#include "edu_sensorring_ros2/srv/stop_thermal_calibration.hpp"
 
 #include <sensorring/MeasurementManager.hpp>
 
@@ -36,10 +36,10 @@ namespace sensorring{
 
     private:
 
-        void stopThermalCalibration(const std::shared_ptr<sensorring_ros2::srv::StopThermalCalibration::Request> request,
-                                    std::shared_ptr<sensorring_ros2::srv::StopThermalCalibration::Response> response);
-        void startThermalCalibration(const std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Request> request,
-                                    std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Response> response);
+        void stopThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Request> request,
+                                    std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Response> response);
+        void startThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
+                                    std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response);
         
         bool _shutdown;
         std::unique_ptr<eduart::manager::MeasurementManager> _manager;

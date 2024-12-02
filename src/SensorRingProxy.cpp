@@ -137,8 +137,8 @@ bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_
 	}
 
 	// set up ros services
-	auto stop_cali_srv	= this->create_service<sensorring_ros2::srv::StopThermalCalibration>(std::string(this->get_name()) + "/stopThermalCalibration", std::bind(&SensorRingProxy::stopThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
-	auto start_cali_srv	= this->create_service<sensorring_ros2::srv::StartThermalCalibration>(std::string(this->get_name()) + "/startThermalCalibration", std::bind(&SensorRingProxy::startThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
+	auto stop_cali_srv	= this->create_service<edu_sensorring_ros2::srv::StopThermalCalibration>(std::string(this->get_name()) + "/stopThermalCalibration", std::bind(&SensorRingProxy::stopThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
+	auto start_cali_srv	= this->create_service<edu_sensorring_ros2::srv::StartThermalCalibration>(std::string(this->get_name()) + "/startThermalCalibration", std::bind(&SensorRingProxy::startThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
 
 	// force first state update
 	onStateChange(_manager->getWorkerState());
@@ -238,8 +238,8 @@ void SensorRingProxy::onOutputLog(const eduart::logger::LogVerbosity verbosity, 
 	}
 };
 
-void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<sensorring_ros2::srv::StopThermalCalibration::Request> request,
-												std::shared_ptr<sensorring_ros2::srv::StopThermalCalibration::Response> response){
+void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Request> request,
+												std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Response> response){
 	if(request->stop){
 		response->output = _manager->stopThermalCalibration();
 	}else{
@@ -247,8 +247,8 @@ void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<sensorring_r
 	}
 };
 
-void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Request> request,
-                                				std::shared_ptr<sensorring_ros2::srv::StartThermalCalibration::Response> response){
+void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
+                                				std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response){
 	response->output = _manager->startThermalCalibration((std::size_t)request->window);
 };
 
