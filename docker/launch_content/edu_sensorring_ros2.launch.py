@@ -16,10 +16,11 @@ def generate_launch_description():
     ])
 
     sensorring = Node(
-      package='sensorring_ros2',
-      executable='sensorring_ros2_node',
-      name='sensorring_ros2_node',
+      package='edu_sensorring_ros2',
+      executable='edu_sensorring_ros2_node',
+      name='edu_sensorring_ros2_node',
       parameters=[parameter_file],
+      #arguments=['--ros-args', '--log-level', 'DEBUG'],
       #prefix='gdbserver localhost:3000',
       #namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
       output='screen',
