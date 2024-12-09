@@ -22,7 +22,7 @@ def generate_launch_description():
       parameters=[parameter_file],
       #arguments=['--ros-args', '--log-level', 'DEBUG'],
       #prefix='gdbserver localhost:3000',
-      #namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
+      namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
       output='screen',
       on_exit=Shutdown()
     )
