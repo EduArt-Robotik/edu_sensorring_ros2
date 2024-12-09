@@ -13,7 +13,7 @@ def generate_launch_description():
     package_path = FindPackageShare('edu_sensorring_ros2')
     parameter_file = PathJoinSubstitution([
       package_path,
-      'parameter',
+      'params',
       'edu_bot_sensorring_params.yaml'
     ])
 
@@ -24,7 +24,7 @@ def generate_launch_description():
       parameters=[parameter_file],
       #arguments=['--ros-args', '--log-level', 'DEBUG'],
       prefix='gdbserver localhost:3000',
-      #namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
+      namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value="eduard"),
       output='screen',
       on_exit=Shutdown()
     )

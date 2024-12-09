@@ -49,7 +49,7 @@ ament_target_dependencies(${PROJECT_NAME}_node rclcpp sensor_msgs geometry_msgs 
 install(
   DIRECTORY
     launch
-    parameter
+    params
   DESTINATION share/${PROJECT_NAME}
 )
 
