@@ -19,8 +19,8 @@
         nr_of_interfaces: 1
         can_interfaces:
           can_interface_0:
-            interface_type: "usbtingp"
-            interface_name: "17316363"
+            interface_type: "usbtingo"
+            interface_name: "0x17316363"
             orientation: "left"
             nr_of_sensors: 6
             sensors:
