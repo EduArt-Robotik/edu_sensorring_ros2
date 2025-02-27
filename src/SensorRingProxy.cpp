@@ -25,7 +25,7 @@ bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_
 	_pc2_msg = sensor_msgs::msg::PointCloud2();
 	_pc2_msg.header.frame_id = tf_name;
 	_pc2_msg.height        = 1;
-	_pc2_msg.point_step    = 4 * sizeof(float); // Dimensions per zone (x,y,z,sigma) * bytes per dimension (float32 -> 4 bytes)
+	_pc2_msg.point_step    = 5 * sizeof(float); // Dimensions per zone (x,y,z,sigma) * bytes per dimension (float32 -> 4 bytes)
 	_pc2_msg.is_bigendian  = true;
 	_pc2_msg.is_dense      = true;
 
@@ -53,7 +53,13 @@ bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_
 	field_sigma.datatype = sensor_msgs::msg::PointField::FLOAT32;
 	field_sigma.count = 1;
 
-	_pc2_msg.fields = {field_x, field_y, field_z, field_sigma};
+	sensor_msgs::msg::PointField field_idx;
+	field_idx.name = "sensor_idx";
+	field_idx.offset = 16;
+	field_idx.datatype = sensor_msgs::msg::PointField::UINT32;
+	field_idx.count = 1;
+
+	_pc2_msg.fields = {field_x, field_y, field_z, field_sigma, field_idx};
 
 	// create pointCloud2 publisher
 	_pointcloud_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
@@ -191,10 +197,11 @@ void SensorRingProxy::onTofMeasurement(const eduart::measurement::TofMeasurement
 
 		// Populate the point cloud with the measurement data
 		for (size_t i = 0; i < _pc2_msg.width; i++) {
-				data_ptr[i * 4 + 0] = static_cast<float>(measurement.point_data_transformed[i].x()); // x
-				data_ptr[i * 4 + 1] = static_cast<float>(measurement.point_data_transformed[i].y()); // y
-				data_ptr[i * 4 + 2] = static_cast<float>(measurement.point_data_transformed[i].z()); // z
-				data_ptr[i * 4 + 3] = static_cast<float>(measurement.point_sigma[i]);  				 // sigma
+				data_ptr[i * 5 + 0] = static_cast<float>(measurement.point_data_transformed[i].x()); // x
+				data_ptr[i * 5 + 1] = static_cast<float>(measurement.point_data_transformed[i].y()); // y
+				data_ptr[i * 5 + 2] = static_cast<float>(measurement.point_data_transformed[i].z()); // z
+				data_ptr[i * 5 + 3] = static_cast<float>(measurement.point_sigma[i]);  				 // sigma
+				data_ptr[i * 5 + 4] = static_cast<u_int32_t>(measurement.point_sensor_idx[i]);		 // sensor index
 		}
 
 		_pointcloud_pub->publish(_pc2_msg);
