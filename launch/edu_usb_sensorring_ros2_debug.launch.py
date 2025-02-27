@@ -40,5 +40,5 @@ def generate_launch_description():
 
     return LaunchDescription([
         sensorring,
-        #base_link_to_tof_tf
+        base_link_to_tof_tf
     ])
