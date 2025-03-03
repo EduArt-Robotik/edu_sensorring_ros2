@@ -7,6 +7,8 @@
 
 #include <algorithm>
 
+namespace eduart{
+
 namespace sensorring{
 
 SensorRingProxy::SensorRingProxy(std::string node_name) :
@@ -18,16 +20,16 @@ SensorRingProxy::~SensorRingProxy(){
 
 };
 
-bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_name){
-	_manager = std::make_unique<eduart::manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
+bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name){
+	_manager = std::make_unique<manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
 
 	// prepare pointCloud2 message
-	_pc2_msg = sensor_msgs::msg::PointCloud2();
-	_pc2_msg.header.frame_id = tf_name;
-	_pc2_msg.height        = 1;
-	_pc2_msg.point_step    = 5 * sizeof(float); // Dimensions per zone (x,y,z,sigma) * bytes per dimension (float32 -> 4 bytes)
-	_pc2_msg.is_bigendian  = true;
-	_pc2_msg.is_dense      = true;
+	sensor_msgs::msg::PointCloud2 pc2_msg;
+	pc2_msg.header.frame_id = tf_name;
+	pc2_msg.height        = 1;
+	pc2_msg.point_step    = sizeof(measurement::PointData);
+	pc2_msg.is_bigendian  = true;
+	pc2_msg.is_dense      = true;
 
 	sensor_msgs::msg::PointField field_x;
 	field_x.name = "x";
@@ -47,22 +49,32 @@ bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_
 	field_z.datatype = sensor_msgs::msg::PointField::FLOAT32;
 	field_z.count = 1;
 
+	sensor_msgs::msg::PointField field_dist;
+	field_dist.name = "raw_distance";
+	field_dist.offset = 12;
+	field_dist.datatype = sensor_msgs::msg::PointField::FLOAT32;
+	field_dist.count = 1;
+
 	sensor_msgs::msg::PointField field_sigma;
 	field_sigma.name = "sigma";
-	field_sigma.offset = 12;
+	field_sigma.offset = 16;
 	field_sigma.datatype = sensor_msgs::msg::PointField::FLOAT32;
 	field_sigma.count = 1;
 
 	sensor_msgs::msg::PointField field_idx;
 	field_idx.name = "sensor_idx";
-	field_idx.offset = 16;
-	field_idx.datatype = sensor_msgs::msg::PointField::UINT32;
+	field_idx.offset = 20;
+	field_idx.datatype = sensor_msgs::msg::PointField::INT32;
 	field_idx.count = 1;
 
-	_pc2_msg.fields = {field_x, field_y, field_z, field_sigma, field_idx};
+	pc2_msg.fields = {field_x, field_y, field_z, field_dist, field_sigma, field_idx};
 
+	_pc2_msg_raw = pc2_msg;
+	_pc2_msg_transformed = pc2_msg;
+	
 	// create pointCloud2 publisher
-	_pointcloud_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
+	_pointcloud_pub_raw			= this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
+	_pointcloud_pub_transformed	= this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_transformed", 1);
 
 	// prepare one image publisher for each active thermal sensor
 	int i = 0;
@@ -162,19 +174,19 @@ bool SensorRingProxy::run(eduart::manager::ManagerParams params, std::string tf_
 	return static_cast<int>(success);
 };
 
-void SensorRingProxy::onStateChange(const eduart::manager::WorkerState state){
+void SensorRingProxy::onStateChange(const manager::WorkerState state){
 	switch(state){
-		case eduart::manager::WorkerState::Initialized:
+		case manager::WorkerState::Initialized:
 			RCLCPP_DEBUG(this->get_logger(), "New MeasurementManager state: initialized");
 			break;
-		case eduart::manager::WorkerState::Running:
+		case manager::WorkerState::Running:
 			RCLCPP_DEBUG(this->get_logger(), "New MeasurementManager state: running");
 			break;
-		case eduart::manager::WorkerState::Shutdown:
+		case manager::WorkerState::Shutdown:
 			RCLCPP_INFO(this->get_logger(), "New MeasurementManager state: shutdown");
 			_shutdown = true;
 			break;
-		case eduart::manager::WorkerState::Error:
+		case manager::WorkerState::Error:
 			RCLCPP_ERROR(this->get_logger(), "New MeasurementManager state: error");
 			_shutdown = true;
 			break;
@@ -185,61 +197,91 @@ bool SensorRingProxy::isShutdown(){
 	return _shutdown;
 }
 
-void SensorRingProxy::onTofMeasurement(const eduart::measurement::TofMeasurement measurement){
-	if(measurement.size > 0){
+void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec){
+	if(!measurement_vec.empty()){
 
-		_pc2_msg.header.stamp  = this->now();
-		_pc2_msg.width         = measurement.size;
-		_pc2_msg.row_step      = _pc2_msg.width * _pc2_msg.point_step;
-		_pc2_msg.data.resize(_pc2_msg.row_step * _pc2_msg.height);
-
-		float* data_ptr = reinterpret_cast<float*>(_pc2_msg.data.data());
-
-		// Populate the point cloud with the measurement data
-		for (size_t i = 0; i < _pc2_msg.width; i++) {
-				data_ptr[i * 5 + 0] = static_cast<float>(measurement.point_data_transformed[i].x()); // x
-				data_ptr[i * 5 + 1] = static_cast<float>(measurement.point_data_transformed[i].y()); // y
-				data_ptr[i * 5 + 2] = static_cast<float>(measurement.point_data_transformed[i].z()); // z
-				data_ptr[i * 5 + 3] = static_cast<float>(measurement.point_sigma[i]);  				 // sigma
-				data_ptr[i * 5 + 4] = static_cast<u_int32_t>(measurement.point_sensor_idx[i]);		 // sensor index
+		std::size_t point_count = 0;
+		for(const auto& measurement : measurement_vec){
+			point_count += measurement.point_cloud.size();
 		}
 
-		_pointcloud_pub->publish(_pc2_msg);
+		_pc2_msg_raw.header.stamp  = this->now();
+		_pc2_msg_raw.width         = point_count;
+		_pc2_msg_raw.row_step      = _pc2_msg_raw.width * _pc2_msg_raw.point_step;
+		_pc2_msg_raw.data.resize(_pc2_msg_raw.row_step);
+
+		auto data_ptr = reinterpret_cast<measurement::PointData*>(_pc2_msg_raw.data.data());
+
+		for(const auto& measurement : measurement_vec){
+			std::copy(measurement.point_cloud.begin(), measurement.point_cloud.end(), data_ptr);
+			data_ptr += measurement.point_cloud.size();
+		}
+
+		_pointcloud_pub_raw->publish(_pc2_msg_raw);
 	}
 };
 
-void SensorRingProxy::onThermalMeasurement(const std::size_t idx, const eduart::measurement::ThermalMeasurement measurement){
-	// prepare and publish grayscale image
-	const std::uint8_t* temp_data_ptr  = measurement.grayscale_img.data.begin();
-	auto img_msg = _img_msg_vec.at(idx);
-	size_t size = img_msg->width * img_msg->height * sizeof(decltype(img_msg->data)::value_type);
-	img_msg->header.stamp = this->now();
-	img_msg->data.resize(size);
-	std::copy_n(temp_data_ptr, size, img_msg->data.data());					
-	_img_pub_vec[idx]->publish(*img_msg);
+void SensorRingProxy::onTransformedTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec){
+	if(!measurement_vec.empty()){
 
-	// prepare and publish false color image
-	const std::uint8_t* color_data_ptr = measurement.falsecolor_img.data.begin()->begin();
-	auto colorimg_msg = _colorimg_msg_vec.at(idx);
-	size *= 3; // ToDO: remove magic number
-	colorimg_msg->header.stamp = this->now();
-	colorimg_msg->data.resize(size);
-	std::copy_n(color_data_ptr, size, colorimg_msg->data.data());
-	_colorimg_pub_vec[idx]->publish(*colorimg_msg);
+		std::size_t point_count = 0;
+		for(const auto& measurement : measurement_vec){
+			point_count += measurement.point_cloud.size();
+		}
+
+		_pc2_msg_transformed.header.stamp  = this->now();
+		_pc2_msg_transformed.width         = point_count;
+		_pc2_msg_transformed.row_step      = _pc2_msg_transformed.width * _pc2_msg_transformed.point_step;
+		_pc2_msg_transformed.data.resize(_pc2_msg_transformed.row_step);
+
+		auto data_ptr = reinterpret_cast<measurement::PointData*>(_pc2_msg_transformed.data.data());
+
+		for(const auto& measurement : measurement_vec){
+			std::copy(measurement.point_cloud.begin(), measurement.point_cloud.end(), data_ptr);
+			data_ptr += measurement.point_cloud.size();
+		}
+
+		_pointcloud_pub_transformed->publish(_pc2_msg_transformed);
+	}
 };
 
-void SensorRingProxy::onOutputLog(const eduart::logger::LogVerbosity verbosity, const std::string msg){
+void SensorRingProxy::onThermalMeasurement(std::vector<measurement::ThermalMeasurement> measurement_vec){
+	int idx = 0;
+	for(const auto& measurement : measurement_vec){
+		// prepare and publish grayscale image
+		const std::uint8_t* temp_data_ptr  = measurement.grayscale_img.data.begin();
+		auto img_msg = _img_msg_vec.at(idx);
+		size_t size = img_msg->width * img_msg->height * sizeof(decltype(img_msg->data)::value_type);
+		img_msg->header.stamp = this->now();
+		img_msg->data.resize(size);
+		std::copy_n(temp_data_ptr, size, img_msg->data.data());					
+		_img_pub_vec[idx]->publish(*img_msg);
+
+		// prepare and publish false color image
+		const std::uint8_t* color_data_ptr = measurement.falsecolor_img.data.begin()->begin();
+		auto colorimg_msg = _colorimg_msg_vec.at(idx);
+		size *= 3; // ToDO: remove magic number
+		colorimg_msg->header.stamp = this->now();
+		colorimg_msg->data.resize(size);
+		std::copy_n(color_data_ptr, size, colorimg_msg->data.data());
+		_colorimg_pub_vec[idx]->publish(*colorimg_msg);
+
+		idx++;
+	}
+};
+
+void SensorRingProxy::onOutputLog(const logger::LogVerbosity verbosity, const std::string msg){
 	switch(verbosity){
-		case eduart::logger::LogVerbosity::Debug:
+		case logger::LogVerbosity::Debug:
 			RCLCPP_DEBUG(this->get_logger(), msg.c_str());
 			break;
-		case eduart::logger::LogVerbosity::Info:
+		case logger::LogVerbosity::Info:
 			RCLCPP_INFO(this->get_logger(), msg.c_str());
 			break;
-		case eduart::logger::LogVerbosity::Warning:
+		case logger::LogVerbosity::Warning:
 			RCLCPP_WARN(this->get_logger(), msg.c_str());
 			break;
-		case eduart::logger::LogVerbosity::Error:
+		case logger::LogVerbosity::Error:
 			RCLCPP_ERROR(this->get_logger(), msg.c_str());
 			break;
 	}
@@ -257,6 +299,8 @@ void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<edu_sensorri
 void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
                                 				std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response){
 	response->output = _manager->startThermalCalibration((std::size_t)request->window);
+};
+
 };
 
 };

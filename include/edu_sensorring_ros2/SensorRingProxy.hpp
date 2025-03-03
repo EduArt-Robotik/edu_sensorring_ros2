@@ -13,26 +13,29 @@
 #include <memory>
 #include <string>
 
+namespace eduart{
 
 namespace sensorring{
 
-    class SensorRingProxy : public rclcpp::Node, eduart::manager::MeasurementObserver{
+    class SensorRingProxy : public rclcpp::Node, manager::MeasurementObserver{
     public:
         SensorRingProxy(std::string node_name);
 
         ~SensorRingProxy();
 
-        bool run(eduart::manager::ManagerParams params, std::string tf_name);
+        bool run(manager::ManagerParams params, std::string tf_name);
 
         bool isShutdown();
 
-        void onStateChange(const eduart::manager::WorkerState state) override;
+        void onStateChange(manager::WorkerState state) override;
 
-        void onTofMeasurement(const eduart::measurement::TofMeasurement measurement) override;
+        void onRawTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec) override;
 
-        void onThermalMeasurement(const std::size_t idx, const eduart::measurement::ThermalMeasurement measurement) override;
+        void onTransformedTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec) override;
 
-        void onOutputLog(const eduart::logger::LogVerbosity verbosity, const std::string msg) override;
+        void onThermalMeasurement(std::vector<measurement::ThermalMeasurement> measurement_vec) override;
+
+        void onOutputLog(const logger::LogVerbosity verbosity, const std::string msg) override;
 
     private:
 
@@ -42,10 +45,13 @@ namespace sensorring{
                                     std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response);
         
         bool _shutdown;
-        std::unique_ptr<eduart::manager::MeasurementManager> _manager;
+        std::unique_ptr<manager::MeasurementManager> _manager;
 
-        sensor_msgs::msg::PointCloud2 _pc2_msg;
-        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub;
+        sensor_msgs::msg::PointCloud2 _pc2_msg_raw;
+        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub_raw;
+
+        sensor_msgs::msg::PointCloud2 _pc2_msg_transformed;
+        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub_transformed;
 
         std::vector<std::shared_ptr<sensor_msgs::msg::Image>> _img_msg_vec;
         std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image>>> _img_pub_vec;
@@ -54,4 +60,6 @@ namespace sensorring{
         std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image>>> _colorimg_pub_vec;
 
     };
+};
+
 };

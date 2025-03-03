@@ -8,7 +8,7 @@
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
       thermal_config:
-        auto_min_max: true
+        auto_min_max: false
         use_eeprom_file: true
         use_calibration_file: true
         eeprom_file_dir: ".eduart/sensorring/eeprom"
@@ -20,8 +20,8 @@
         can_interfaces:
           can_interface_0:
             interface_type: "socketcan"
-            interface_name: "eduart-can0"
-            orientation: "right"
+            interface_name: "eduart-can1"
+            orientation: "left"
             nr_of_sensors: 6
             sensors:
               sensor_0:
@@ -63,8 +63,8 @@
 
           can_interface_1:
             interface_type: "socketcan"
-            interface_name: "eduart-can1"
-            orientation: "left"
+            interface_name: "eduart-can0"
+            orientation: "right"
             nr_of_sensors: 6
             sensors:
               sensor_0:

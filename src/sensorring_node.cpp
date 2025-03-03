@@ -6,14 +6,15 @@
 #include "rclcpp/rclcpp.hpp"
 #include "SensorRingProxy.hpp"
 
+using namespace eduart;
 
 int main (int argc, char* argv[]){
 	
 	rclcpp::init(argc, argv);
 	
 	std::string tf_name;
-	eduart::ring::RingParams ring_params;
-	eduart::manager::ManagerParams manager_params;
+	ring::RingParams ring_params;
+	manager::ManagerParams manager_params;
 
 	// Create SensorRing Node
 	auto measurement_node = std::make_shared<sensorring::SensorRingProxy>("edu_sensorring_ros2");
@@ -51,9 +52,10 @@ int main (int argc, char* argv[]){
 
 	// Get parameters for every can interface
 	param_namespace += ".topology.can_interfaces";
+	int sensor_idx = 0;
 	for(int i=0; i<nr_of_can_interfaces; i++){
 
-		eduart::bus::BusParams bus_params;
+		bus::BusParams bus_params;
 
 		// Get SensorBus parameters
 		std::string interface_param_name = ".can_interface_" + std::to_string(i);
@@ -68,16 +70,16 @@ int main (int argc, char* argv[]){
 		bus_params.interface_name	= measurement_node->get_parameter(param_namespace + interface_param_name + ".interface_name").as_string();
 		
 		if(interface_type == "socketcan"){
-			bus_params.type = eduart::com::DeviceType::SOCKETCAN;
+			bus_params.type = com::DeviceType::SOCKETCAN;
 		}else if(interface_type == "usbtingo"){
-			bus_params.type = eduart::com::DeviceType::USBTINGO;
+			bus_params.type = com::DeviceType::USBTINGO;
 		}else{
-			bus_params.type = eduart::com::DeviceType::UNDEFINED;
+			bus_params.type = com::DeviceType::UNDEFINED;
 		}
 
-		eduart::sensor::Orientation orientation		= eduart::sensor::Orientation::none;
-		if (orientation_str == "left")  orientation	= eduart::sensor::Orientation::left;
-		if (orientation_str == "right") orientation	= eduart::sensor::Orientation::right;
+		sensor::Orientation orientation		= sensor::Orientation::none;
+		if (orientation_str == "left")  orientation	= sensor::Orientation::left;
+		if (orientation_str == "right") orientation	= sensor::Orientation::right;
 
 		// Get parameters for every sensor on the current can interface
 		interface_param_name += ".sensors";
@@ -98,8 +100,9 @@ int main (int argc, char* argv[]){
 			std::vector<double> rotation    = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".rotation").as_double_array();
 			std::vector<double> translation = measurement_node->get_parameter(param_namespace + interface_param_name + sensor_param_name + ".translation").as_double_array();
 
-			eduart::sensor::TofSensorParams tof_params;
-			tof_params.enable = enable_tof;
+			sensor::TofSensorParams tof_params;
+			tof_params.enable		= enable_tof;
+			tof_params.user_idx		= sensor_idx;
 
 			if(rotation.size() == 3){
 				std::copy_n(rotation.begin(), 3, tof_params.rotation.data.begin());
@@ -113,8 +116,9 @@ int main (int argc, char* argv[]){
 				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensorring"), "Translation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
 			}
 			
-			eduart::sensor::ThermalSensorParams thermal_params;
+			sensor::ThermalSensorParams thermal_params;
 			thermal_params.enable				= enable_thermal;
+			thermal_params.user_idx				= sensor_idx;
 			thermal_params.rotation     		= tof_params.rotation; // ToDo: The pose of the thermal sensor is not the pose of the tof sensor. Need to add an offset.
 			thermal_params.translation  		= tof_params.translation;
 			thermal_params.orientation			= orientation;
@@ -126,17 +130,18 @@ int main (int argc, char* argv[]){
 			thermal_params.t_min_deg_c			= thermal_t_min;
 			thermal_params.t_max_deg_c			= thermal_t_max;
 
-			eduart::sensor::LightParams led_params;
+			sensor::LightParams led_params;
 			led_params.enable = enable_light;
 			led_params.orientation = orientation;
 					
 			// Create sensor board
-			eduart::sensor::SensorBoardParams board_params;
+			sensor::SensorBoardParams board_params;
 			board_params.tof_params     = tof_params;
 			board_params.thermal_params = thermal_params;
 			board_params.led_params     = led_params;
 
 			bus_params.board_param_vec.push_back(board_params);
+			sensor_idx++;
 		}
 		ring_params.bus_param_vec.push_back(bus_params);
 	}
