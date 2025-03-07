@@ -1,0 +1,56 @@
+import os
+import yaml
+
+from launch import LaunchDescription
+from launch_ros.actions import Node
+from launch_ros.substitutions import FindPackageShare
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, Shutdown
+from launch.substitutions import EnvironmentVariable, PathJoinSubstitution, LaunchConfiguration
+
+def generate_launch_description():
+   
+    parameter_file = PathJoinSubstitution([
+      '.',
+      'sensorring_demo_params.yaml'
+    ])
+
+    sensorring = Node(
+      package='edu_sensorring_ros2',
+      executable='edu_sensorring_ros2_node',
+      name='edu_sensorring_ros2_node',
+      parameters=[parameter_file],
+      #arguments=['--ros-args', '--log-level', 'DEBUG'],
+      #prefix='gdbserver localhost:3000',
+      namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value=""),
+      output='screen',
+      on_exit=Shutdown()
+    )
+
+    visualization_file = PathJoinSubstitution([
+      '.',
+      'sensorring_visualization.rviz'
+    ])
+
+    # Start rviz2 with the config file
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['--display-config', visualization_file, '--fullscreen'],
+        output='screen'
+    )
+
+    # base_link to base_sensor_ring
+    base_link_to_tof_tf = Node(
+      package='tf2_ros',
+      executable='static_transform_publisher',
+      name='base_link_to_base_tof',
+      arguments=["--x", "0.0","--y", "0.0","--z", "0.0","--roll",  "0.0","--pitch", "0.0","--yaw",  "0.0", "--frame-id", "base_link","--child-frame-id", "base_sensorring"],
+      output="screen"
+    )
+
+    return LaunchDescription([
+        sensorring,
+        rviz_node,
+        #base_link_to_tof_tf
+    ])

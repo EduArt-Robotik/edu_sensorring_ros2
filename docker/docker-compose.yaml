@@ -10,17 +10,22 @@ services:
         privileged: true
         ipc: host
         pid: host
-        mem_limit: 300mb
+        mem_limit: 6000mb
         environment:
+            - DISPLAY=:0
+            - QT_QPA_PLATFORM=xcb
+            - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
             - EDU_ROBOT_NAMESPACE=${EDU_ROBOT_NAMESPACE}
             - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
             - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+            - LIBGL_ALWAYS_SOFTWARE=1
         network_mode: "host"
-        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch edu_sensorring_ros2.launch.py'
+        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch sensorring_demo.launch.py'
         # command: /bin/bash
         # stdin_open: true
         volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
             - './launch_content:/home/user/ros/launch_content'
             - '~/.eduart/sensorring/:/home/user/.eduart/sensorring/'
-        #devices:
-        #    - '/dev:/dev'
+        devices:
+            - '/dev:/dev'
