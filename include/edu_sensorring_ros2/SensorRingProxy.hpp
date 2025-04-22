@@ -53,6 +53,9 @@ namespace sensorring{
         sensor_msgs::msg::PointCloud2 _pc2_msg_transformed;
         std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub_transformed;
 
+        std::vector<sensor_msgs::msg::PointCloud2> _pc2_msg_individual_vec;
+        std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>>> _pointcloud_pub_individual_vec;
+
         std::vector<std::shared_ptr<sensor_msgs::msg::Image>> _img_msg_vec;
         std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image>>> _img_pub_vec;
 
