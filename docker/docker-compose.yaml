@@ -5,7 +5,7 @@ services:
           dockerfile: ./edu_sensorring_ros2/docker/Dockerfile
         image: sensorring
         container_name: edu_sensorring_ros2-1.0.0
-        user: user
+        #user: user
         restart: always
         privileged: true
         ipc: host
