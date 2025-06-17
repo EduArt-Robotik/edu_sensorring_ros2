@@ -20,8 +20,12 @@ SensorRingProxy::~SensorRingProxy(){
 
 };
 
-bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name){
+
+bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, light::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue){
+
+	// create MeasurementManager
 	_manager = std::make_unique<manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
+	_manager->setLight(initial_light_mode, red, green, blue);
 
 	// prepare pointCloud2 message
 	sensor_msgs::msg::PointCloud2 pc2_msg;

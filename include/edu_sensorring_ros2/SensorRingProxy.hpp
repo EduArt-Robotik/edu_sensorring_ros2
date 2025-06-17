@@ -23,7 +23,8 @@ namespace sensorring{
 
         ~SensorRingProxy();
 
-        bool run(manager::ManagerParams params, std::string tf_name);
+        //bool run(manager::ManagerParams params, std::string tf_name);
+        bool run(manager::ManagerParams params, std::string tf_name, light::LightMode initial_light_mode = light::LightMode::Off, std::uint8_t red = 0, std::uint8_t green = 0, std::uint8_t blue = 0);
 
         bool isShutdown();
 
