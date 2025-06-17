@@ -12,7 +12,7 @@ def generate_launch_description():
    
     parameter_file = PathJoinSubstitution([
       '.',
-      'edu_bot_sensorring_params.yaml'
+      'eddie_sensorring_params.yaml'
     ])
 
     sensorring = Node(
