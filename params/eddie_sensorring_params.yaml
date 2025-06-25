@@ -21,33 +21,33 @@
             sensors:
               sensor_0:
                 enable_tof: true
-                rotation: [86.07, -2.44, -75.0]
+                rotation: [86.07, -2.44, -75.78]
                 translation: [-0.173, -0.025, 0.167]
               sensor_1:
                 enable_tof: true
-                rotation: [92.38, 0.66, -105.0]
+                rotation: [92.38, 0.66, -104.48]
                 translation: [-0.173, 0.025, 0.167]
               sensor_2:
                 enable_tof: true
-                rotation: [86.15, 1.75, -165.0]
+                rotation: [86.15, 1.75, -166.36]
                 translation: [-0.025, 0.103, 0.167]
               sensor_3:
                 enable_tof: true
-                rotation: [87.83, -1.11, 165.0]
+                rotation: [87.83, -1.11, 165.12]
                 translation: [0.025, 0.103, 0.167]
               sensor_4:
                 enable_tof: true
-                rotation: [90.98, 0.45, 105.0]
+                rotation: [90.98, 0.45, 105.54]
                 translation: [0.173, 0.025, 0.167]
               sensor_5:
                 enable_tof: true
-                rotation: [93.76, -0.64, 75.0]
+                rotation: [93.76, -0.64, 74.53]
                 translation: [0.173, -0.025, 0.167]
               sensor_6:
                 enable_tof: true
-                rotation: [91.01, 0.75, 15.0]
+                rotation: [91.01, 0.75, 17.89]
                 translation: [0.025, -0.103, 0.167]
               sensor_7:
                 enable_tof: true
-                rotation: [94.20, -1.61, -15.0]
+                rotation: [94.20, -1.61, -16.45]
                 translation: [-0.025, -0.103, 0.167]
