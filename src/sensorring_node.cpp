@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <stdexcept>
 
 #include "rclcpp/rclcpp.hpp"
 #include "SensorRingProxy.hpp"
@@ -50,6 +51,23 @@ int main (int argc, char* argv[]){
 	double thermal_t_max				= measurement_node->get_parameter(param_namespace + ".thermal_config.scale_t_max_deg").as_double();
 	int nr_of_can_interfaces            = measurement_node->get_parameter(param_namespace + ".topology.nr_of_interfaces").as_int();
 
+	measurement_node->declare_parameter(param_namespace + ".led_config.initial_mode", 0);
+	measurement_node->declare_parameter(param_namespace + ".led_config.initial_color", std::vector<int>{0, 0, 0});
+
+	int light_initial_mode_code			= measurement_node->get_parameter(param_namespace + ".led_config.initial_mode").as_int();
+	std::vector<long> light_color		= measurement_node->get_parameter(param_namespace + ".led_config.initial_color").as_integer_array();
+	light::LightMode light_initial_mode = static_cast<light::LightMode>(light_initial_mode_code);
+	
+	if(light_color.size() != 3){
+		throw std::runtime_error("Light color vector has wrong length! Expected 3 values for RGB color.");
+	}
+
+	for(const auto& color_value : light_color){
+		if(color_value < 0 || color_value > 255){
+			throw std::runtime_error("Light color values must be in the range [0, 255]!");
+		}
+	}
+	
 	// Get parameters for every can interface
 	param_namespace += ".topology.can_interfaces";
 	int sensor_idx = 0;
@@ -107,15 +125,15 @@ int main (int argc, char* argv[]){
 			if(rotation.size() == 3){
 				std::copy_n(rotation.begin(), 3, tof_params.rotation.data.begin());
 			}else{
-				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensorring"), "Rotation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
+				throw std::invalid_argument("Rotation vector of sensor " + std::to_string(j) + " on interface " + bus_params.interface_name + " has wrong length!");
 			}
 
 			if(translation.size() == 3){
 				std::copy_n(translation.begin(), 3, tof_params.translation.data.begin());
 			}else{
-				RCLCPP_ERROR_STREAM(rclcpp::get_logger("sensorring"), "Translation vector of sensor " << j << " on interface " << bus_params.interface_name << " has wrong length!");
+				throw std::invalid_argument("Translation vector of sensor " + std::to_string(j) + " on interface " + bus_params.interface_name + " has wrong length!");
 			}
-			
+
 			sensor::ThermalSensorParams thermal_params;
 			thermal_params.enable				= enable_thermal;
 			thermal_params.user_idx				= sensor_idx;
@@ -148,7 +166,7 @@ int main (int argc, char* argv[]){
 	manager_params.ring_params = ring_params;
 
 	// Run ros node
-	bool success = measurement_node->run(manager_params, tf_name);
+	bool success = measurement_node->run(manager_params, tf_name, light_initial_mode, light_color[0], light_color[1], light_color[2]);
 	rclcpp::shutdown();
 	
 	return success ? 0 : 1;
