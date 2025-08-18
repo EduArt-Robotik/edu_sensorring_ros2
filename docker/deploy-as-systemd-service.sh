@@ -5,23 +5,26 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 docker_compose_file_path=$(pwd)
-systemd_service_file="eduart-edu-sensorring.service"
+systemd_service_file1="eduart-edu-sensorring.service"
+systemd_service_file2="docker-xhost.service"
 tag="<docker_compose_file_path>"
 
 echo "Deploying Docker Compose controlling the EduArt Sensor Ring."
 
 # First installing systemd service on system.
 echo "Installing systemd service on system"
-cp $systemd_service_file /etc/systemd/system/
+cp $systemd_service_file1 /etc/systemd/system/
+cp $systemd_service_file2 /etc/systemd/system/
+
 
 # Modify systemd service so it runs the correct docker compose file.
 echo "Add current file path \"$docker_compose_file_path\" to systemd service."
-sed -i "s|$tag|$docker_compose_file_path|g" /etc/systemd/system/$systemd_service_file
+sed -i "s|$tag|$docker_compose_file_path|g" /etc/systemd/system/$systemd_service_file1
 
 # Starting up service.
 systemctl daemon-reload
-systemctl start $systemd_service_file
-systemctl enable $systemd_service_file
+systemctl start $systemd_service_file1
+systemctl enable $systemd_service_file1
 echo "Systemd service was installed and enabled, so it will start automatically at boot up."
 
 # Printing info text.
