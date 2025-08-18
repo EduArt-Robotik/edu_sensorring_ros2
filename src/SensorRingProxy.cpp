@@ -14,12 +14,11 @@ namespace sensorring{
 SensorRingProxy::SensorRingProxy(std::string node_name) :
 Node(node_name), MeasurementObserver(), _shutdown(false) {
 
-};
+}
     
 SensorRingProxy::~SensorRingProxy(){
 
-};
-
+}
 
 bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, light::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue){
 
@@ -182,7 +181,7 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 	}
 
 	return static_cast<int>(success);
-};
+}
 
 void SensorRingProxy::onStateChange(const manager::WorkerState state){
 	switch(state){
@@ -201,7 +200,7 @@ void SensorRingProxy::onStateChange(const manager::WorkerState state){
 			_shutdown = true;
 			break;
 	}
-};
+}
 
 bool SensorRingProxy::isShutdown(){
 	return _shutdown;
@@ -218,7 +217,7 @@ void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasuremen
 			point_count += measurement.point_cloud.size();
 
 			// prepare individual pc2 messages
-			auto& msg = _pc2_msg_individual_vec.at(idx);
+			auto& msg			= _pc2_msg_individual_vec.at(idx);
 			msg.header.stamp	= now;
 			msg.width			= measurement.point_cloud.size();
 			msg.row_step		= msg.width * msg.point_step;
@@ -251,7 +250,7 @@ void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasuremen
 		// publish combined measurement
 		_pointcloud_pub_raw->publish(_pc2_msg_raw);
 	}
-};
+}
 
 void SensorRingProxy::onTransformedTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec){
 	if(!measurement_vec.empty()){
@@ -275,7 +274,7 @@ void SensorRingProxy::onTransformedTofMeasurement(std::vector<measurement::TofMe
 
 		_pointcloud_pub_transformed->publish(_pc2_msg_transformed);
 	}
-};
+}
 
 void SensorRingProxy::onThermalMeasurement(std::vector<measurement::ThermalMeasurement> measurement_vec){
 	int idx = 0;
@@ -300,7 +299,7 @@ void SensorRingProxy::onThermalMeasurement(std::vector<measurement::ThermalMeasu
 
 		idx++;
 	}
-};
+}
 
 void SensorRingProxy::onOutputLog(const logger::LogVerbosity verbosity, const std::string msg){
 	switch(verbosity){
@@ -317,7 +316,7 @@ void SensorRingProxy::onOutputLog(const logger::LogVerbosity verbosity, const st
 			RCLCPP_ERROR(this->get_logger(), msg.c_str());
 			break;
 	}
-};
+}
 
 void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Request> request,
 												std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Response> response){
@@ -326,13 +325,13 @@ void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<edu_sensorri
 	}else{
 		response->output = false;
 	}
-};
+}
 
 void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
                                 				std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response){
 	response->output = _manager->startThermalCalibration((std::size_t)request->window);
-};
+}
 
-};
+}
 
-};
+}

@@ -68,7 +68,7 @@ int main (int argc, char* argv[]){
 		}
 	}
 	
-	// Get parameters for every can interface
+	// Get parameters for every CAN interface
 	param_namespace += ".topology.can_interfaces";
 	int sensor_idx = 0;
 	for(int i=0; i<nr_of_can_interfaces; i++){
