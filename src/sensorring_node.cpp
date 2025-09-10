@@ -24,6 +24,7 @@ int main (int argc, char* argv[]){
 	// Get SensorRing parameters
 	std::string param_namespace = "pointcloud_sensor";
 	measurement_node->declare_parameter(param_namespace + ".base_setup.timeout_ms", 1000);
+	measurement_node->declare_parameter(param_namespace + ".base_setup.enable_brs", false);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.tf_name", "base_sensorring");
 	measurement_node->declare_parameter(param_namespace + ".base_setup.print_topology", true);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.frequency_tof_hz", 5.0);
@@ -39,6 +40,7 @@ int main (int argc, char* argv[]){
 
 	ring_params.timeout					= std::chrono::milliseconds(measurement_node->get_parameter(param_namespace + ".base_setup.timeout_ms").as_int());
 	tf_name								= measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
+	manager_params.enable_brs       	= measurement_node->get_parameter(param_namespace + ".base_setup.enable_brs").as_bool();
 	manager_params.print_topology	    = measurement_node->get_parameter(param_namespace + ".base_setup.print_topology").as_bool();
 	manager_params.frequency_tof_hz     = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_tof_hz").as_double();
 	manager_params.frequency_thermal_hz = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_thermal_hz").as_double();
@@ -81,7 +83,7 @@ int main (int argc, char* argv[]){
 		measurement_node->declare_parameter(param_namespace + interface_param_name + ".interface_name", "can0");
 		measurement_node->declare_parameter(param_namespace + interface_param_name + ".orientation",    "none");
 		measurement_node->declare_parameter(param_namespace + interface_param_name + ".nr_of_sensors",   1);
-
+		
 		int nr_of_sensors           = measurement_node->get_parameter(param_namespace + interface_param_name + ".nr_of_sensors").as_int();
 		std::string orientation_str = measurement_node->get_parameter(param_namespace + interface_param_name + ".orientation").as_string();
 		std::string interface_type	= measurement_node->get_parameter(param_namespace + interface_param_name + ".interface_type").as_string();
