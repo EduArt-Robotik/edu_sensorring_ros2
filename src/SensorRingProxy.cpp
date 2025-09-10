@@ -17,7 +17,8 @@ Node(node_name), MeasurementObserver(), _shutdown(false) {
 }
     
 SensorRingProxy::~SensorRingProxy(){
-
+	if(_manager)
+		_manager->unregisterObserver(this);
 }
 
 bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, light::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue){
