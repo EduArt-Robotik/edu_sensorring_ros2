@@ -38,7 +38,7 @@ RUN git clone --depth 1 --branch master https://github.com/EduArt-Robotik/edu_li
     && cd edu_lib_sensorring \
     && mkdir build \
     && cd build \
-    && cmake .. -DBUILD_SHARED_LIBS=OFF -DVERBOSE=OFF -DCMAKE_BUILD_TYPE=Release -DUSE_USBTINGO=True\
+    && cmake .. -DBUILD_SHARED_LIBS=OFF -DVERBOSE=OFF -DCMAKE_BUILD_TYPE=Release -DUSE_USBTINGO=ON\
     && cmake --build . -j4 \
     && sudo cmake --install .
 
