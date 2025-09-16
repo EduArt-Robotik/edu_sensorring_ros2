@@ -21,6 +21,6 @@ services:
         # stdin_open: true
         volumes:
             - './launch_content:/home/user/ros/launch_content'
-            - '~/.eduart/sensorring/:/home/user/.eduart/sensorring/'
-        #devices:
-        #    - '/dev:/dev'
+            - '${HOME}/.eduart/sensorring/:/home/user/.eduart/sensorring/'
+        devices:
+            - '/dev:/dev'
