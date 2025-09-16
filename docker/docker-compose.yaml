@@ -26,6 +26,6 @@ services:
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
             - './launch_content:/home/user/ros/launch_content'
-            - '~/.eduart/sensorring/:/home/user/.eduart/sensorring/'
+            - '${HOME}/.eduart/sensorring/:/home/user/.eduart/sensorring/'
         devices:
             - '/dev:/dev'
