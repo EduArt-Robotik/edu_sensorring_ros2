@@ -4,27 +4,28 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/static_transform_broadcaster.h"
-
-#include <algorithm>
-
+#include <sensorring/Logger.hpp>
+#include <sensorring/LoggerClient.hpp>
+#include <sensorring/MeasurementClient.hpp>
 namespace eduart{
 
 namespace sensorring{
 
 SensorRingProxy::SensorRingProxy(std::string node_name) :
-Node(node_name), MeasurementObserver(), _shutdown(false) {
-
+Node(node_name), MeasurementClient(), LoggerClient(), _shutdown(false) {
+	logger::Logger::getInstance()->registerClient(static_cast<LoggerClient*>(this));
 }
     
 SensorRingProxy::~SensorRingProxy(){
 	if(_manager)
-		_manager->unregisterObserver(this);
+		_manager->unregisterClient(this);
 }
 
-bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, light::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue){
+bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, light::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue){
 
 	// create MeasurementManager
-	_manager = std::make_unique<manager::MeasurementManager>(params, static_cast<MeasurementObserver*>(this));
+	_manager = std::move(manager);
+	_manager->registerClient(static_cast<MeasurementClient*>(this));
 	_manager->setLight(initial_light_mode, red, green, blue);
 
 	// prepare pointCloud2 message
@@ -77,7 +78,7 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 	_pc2_msg_transformed = pc2_msg;
 	
 	// create pointCloud2 publisher
-	_pointcloud_pub_raw			= this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
+	_pointcloud_pub_raw         = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
 	_pointcloud_pub_transformed	= this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_transformed", 1);
 
 	// prepare one image publisher for each active thermal sensor
@@ -93,11 +94,11 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 				// prepare image message
 				auto img_msg = std::make_shared<sensor_msgs::msg::Image>();
 				img_msg->header.frame_id = sensor_name;
-				img_msg->height			= 32;
-				img_msg->width			= 32;
-				img_msg->encoding		= "mono8";
-				img_msg->is_bigendian	= false;
-				img_msg->step			= img_msg->width * 1; // ToDo: remove magic number for uint8_t/uint16_t size
+				img_msg->height          = 32;
+				img_msg->width           = 32;
+				img_msg->encoding        = "mono8";
+				img_msg->is_bigendian    = false;
+				img_msg->step            = img_msg->width * 1; // ToDo: remove magic number for uint8_t/uint16_t size
 
 				auto img_pub = this->create_publisher<sensor_msgs::msg::Image>("/sensors/" + sensor_name, 1);
 
@@ -111,11 +112,11 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 				// prepare image message
 				auto colorimg_msg = std::make_shared<sensor_msgs::msg::Image>();
 				colorimg_msg->header.frame_id = sensor_name;
-				colorimg_msg->height	    = 32;
-				colorimg_msg->width			= 32;
-				colorimg_msg->encoding		= "rgb8";
-				colorimg_msg->is_bigendian	= false;
-				colorimg_msg->step			= img_msg->width * 3; // ToDo: remove magic number for uint8_t/uint16_t size
+				colorimg_msg->height          = 32;
+				colorimg_msg->width           = 32;
+				colorimg_msg->encoding        = "rgb8";
+				colorimg_msg->is_bigendian    = false;
+				colorimg_msg->step            = img_msg->width * 3; // ToDo: remove magic number for uint8_t/uint16_t size
 
 				auto colorimg_pub = this->create_publisher<sensor_msgs::msg::Image>("/sensors/" + sensor_name, 1);
 
@@ -140,14 +141,14 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 			t.header.frame_id = tf_name;
 			t.child_frame_id = "sensor_" + std::to_string(i);
 
-			t.transform.translation.x = sensor_board.tof_params.translation.x();
-			t.transform.translation.y = sensor_board.tof_params.translation.y();
-			t.transform.translation.z = sensor_board.tof_params.translation.z();
+			t.transform.translation.x = sensor_board.translation.x();
+			t.transform.translation.y = sensor_board.translation.y();
+			t.transform.translation.z = sensor_board.translation.z();
 			tf2::Quaternion q;
 			q.setRPY(
-				sensor_board.tof_params.rotation.x() * M_PI / 180.0,
-				sensor_board.tof_params.rotation.y() * M_PI / 180.0,
-				sensor_board.tof_params.rotation.z() * M_PI / 180.0);
+				sensor_board.rotation.x() * M_PI / 180.0,
+				sensor_board.rotation.y() * M_PI / 180.0,
+				sensor_board.rotation.z() * M_PI / 180.0);
 			t.transform.rotation.x = q.x();
 			t.transform.rotation.y = q.y();
 			t.transform.rotation.z = q.z();
@@ -169,7 +170,7 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 	auto start_cali_srv	= this->create_service<edu_sensorring_ros2::srv::StartThermalCalibration>(std::string(this->get_name()) + "/startThermalCalibration", std::bind(&SensorRingProxy::startThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
 
 	// force first state update
-	onStateChange(_manager->getWorkerState());
+	onStateChange(_manager->getManagerState());
 
 	bool success = _manager->startMeasuring();
 
@@ -184,22 +185,11 @@ bool SensorRingProxy::run(manager::ManagerParams params, std::string tf_name, li
 	return static_cast<int>(success);
 }
 
-void SensorRingProxy::onStateChange(const manager::WorkerState state){
-	switch(state){
-		case manager::WorkerState::Initialized:
-			RCLCPP_DEBUG(this->get_logger(), "New MeasurementManager state: initialized");
-			break;
-		case manager::WorkerState::Running:
-			RCLCPP_DEBUG(this->get_logger(), "New MeasurementManager state: running");
-			break;
-		case manager::WorkerState::Shutdown:
-			RCLCPP_INFO(this->get_logger(), "New MeasurementManager state: shutdown");
-			_shutdown = true;
-			break;
-		case manager::WorkerState::Error:
-			RCLCPP_ERROR(this->get_logger(), "New MeasurementManager state: error");
-			_shutdown = true;
-			break;
+void SensorRingProxy::onStateChange(const manager::ManagerState state){
+	if(state < manager::ManagerState::Error){
+		RCLCPP_DEBUG_STREAM(this->get_logger(), "New MeasurementManager state: " << state);
+	}else{
+		RCLCPP_ERROR_STREAM(this->get_logger(), "New MeasurementManager state: " << state);
 	}
 }
 
@@ -314,6 +304,9 @@ void SensorRingProxy::onOutputLog(const logger::LogVerbosity verbosity, const st
 			RCLCPP_WARN(this->get_logger(), msg.c_str());
 			break;
 		case logger::LogVerbosity::Error:
+			RCLCPP_ERROR(this->get_logger(), msg.c_str());
+			break;
+		case logger::LogVerbosity::Exception:
 			RCLCPP_ERROR(this->get_logger(), msg.c_str());
 			break;
 	}
