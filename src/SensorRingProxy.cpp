@@ -4,28 +4,31 @@
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/static_transform_broadcaster.h"
+
 #include <sensorring/Logger.hpp>
 #include <sensorring/LoggerClient.hpp>
 #include <sensorring/MeasurementClient.hpp>
+
 namespace eduart{
 
 namespace sensorring{
 
 SensorRingProxy::SensorRingProxy(std::string node_name) :
-Node(node_name), MeasurementClient(), LoggerClient(), _shutdown(false) {
-	logger::Logger::getInstance()->registerClient(static_cast<LoggerClient*>(this));
+Node(node_name), MeasurementClient(), LoggerClient() {
+	logger::Logger::getInstance()->registerClient(this);
 }
     
 SensorRingProxy::~SensorRingProxy(){
 	if(_manager)
 		_manager->unregisterClient(this);
+	logger::Logger::getInstance()->unregisterClient(this);
 }
 
 bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, light::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue){
 
 	// create MeasurementManager
 	_manager = std::move(manager);
-	_manager->registerClient(static_cast<MeasurementClient*>(this));
+	_manager->registerClient(this);
 	_manager->setLight(initial_light_mode, red, green, blue);
 
 	// prepare pointCloud2 message
@@ -175,9 +178,9 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 	bool success = _manager->startMeasuring();
 
 	if(success){
-		while(!_shutdown && rclcpp::ok()){
+		while(_manager->isMeasuring() && rclcpp::ok()){
 			rclcpp::spin_some(shared_from_this());
-		}
+  	}
 
 		success = _manager->stopMeasuring();
 	}
@@ -193,10 +196,6 @@ void SensorRingProxy::onStateChange(const manager::ManagerState state){
 	}
 }
 
-bool SensorRingProxy::isShutdown(){
-	return _shutdown;
-}
-
 void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec){
 	if(!measurement_vec.empty()){
 
@@ -208,10 +207,10 @@ void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasuremen
 			point_count += measurement.point_cloud.size();
 
 			// prepare individual pc2 messages
-			auto& msg			= _pc2_msg_individual_vec.at(idx);
-			msg.header.stamp	= now;
-			msg.width			= measurement.point_cloud.size();
-			msg.row_step		= msg.width * msg.point_step;
+			auto& msg        = _pc2_msg_individual_vec.at(idx);
+			msg.header.stamp = now;
+			msg.width        = measurement.point_cloud.size();
+			msg.row_step     = msg.width * msg.point_step;
 			msg.data.resize(msg.row_step);
 			idx++;
 		}

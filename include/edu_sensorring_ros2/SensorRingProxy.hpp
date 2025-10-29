@@ -25,10 +25,7 @@ namespace sensorring{
 
         ~SensorRingProxy();
 
-        //bool run(manager::ManagerParams params, std::string tf_name);
         bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, light::LightMode initial_light_mode = light::LightMode::Off, std::uint8_t red = 0, std::uint8_t green = 0, std::uint8_t blue = 0);
-
-        bool isShutdown();
 
         void onStateChange(manager::ManagerState state) override;
 
@@ -47,7 +44,6 @@ namespace sensorring{
         void startThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
                                     std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response);
         
-        bool _shutdown;
         std::unique_ptr<manager::MeasurementManager> _manager;
 
         sensor_msgs::msg::PointCloud2 _pc2_msg_raw;
