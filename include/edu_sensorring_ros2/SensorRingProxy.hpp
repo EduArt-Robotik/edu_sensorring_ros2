@@ -8,7 +8,6 @@
 #include "edu_sensorring_ros2/srv/stop_thermal_calibration.hpp"
 
 #include <sensorring/Logger.hpp>
-#include <sensorring/LoggerClient.hpp>
 #include <sensorring/MeasurementManager.hpp>
 
 #include <vector>
@@ -19,7 +18,7 @@ namespace eduart{
 
 namespace sensorring{
 
-    class SensorRingProxy : public rclcpp::Node, manager::MeasurementClient, logger::LoggerClient{
+    class SensorRingProxy : public rclcpp::Node, manager::MeasurementClient, logger::LoggerClient {
     public:
         SensorRingProxy(std::string node_name);
 
@@ -44,6 +43,8 @@ namespace sensorring{
         void startThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
                                     std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response);
         
+        std::uint8_t* packPointData(const measurement::TofMeasurement& src, std::uint8_t* dst);
+
         std::unique_ptr<manager::MeasurementManager> _manager;
 
         sensor_msgs::msg::PointCloud2 _pc2_msg_raw;

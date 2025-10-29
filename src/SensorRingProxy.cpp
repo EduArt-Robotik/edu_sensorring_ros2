@@ -5,10 +5,6 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 
-#include <sensorring/Logger.hpp>
-#include <sensorring/LoggerClient.hpp>
-#include <sensorring/MeasurementClient.hpp>
-
 namespace eduart{
 
 namespace sensorring{
@@ -57,17 +53,17 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 	field_z.datatype = sensor_msgs::msg::PointField::FLOAT32;
 	field_z.count = 1;
 
-	sensor_msgs::msg::PointField field_sigma;
-	field_sigma.name = "sigma";
-	field_sigma.offset = 16;
-	field_sigma.datatype = sensor_msgs::msg::PointField::FLOAT32;
-	field_sigma.count = 1;
-
 	sensor_msgs::msg::PointField field_dist;
 	field_dist.name = "raw_distance";
 	field_dist.offset = 12;
 	field_dist.datatype = sensor_msgs::msg::PointField::FLOAT32;
 	field_dist.count = 1;
+
+	sensor_msgs::msg::PointField field_sigma;
+	field_sigma.name = "sigma";
+	field_sigma.offset = 16;
+	field_sigma.datatype = sensor_msgs::msg::PointField::FLOAT32;
+	field_sigma.count = 1;
 
 	sensor_msgs::msg::PointField field_idx;
 	field_idx.name = "sensor_idx";
@@ -75,7 +71,7 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 	field_idx.datatype = sensor_msgs::msg::PointField::INT32;
 	field_idx.count = 1;
 
-	pc2_msg.fields = {field_x, field_y, field_z, field_sigma, field_dist, field_idx};
+	pc2_msg.fields = {field_x, field_y, field_z, field_dist, field_sigma, field_idx};
 
 	_pc2_msg_raw = pc2_msg;
 	_pc2_msg_transformed = pc2_msg;
@@ -221,18 +217,16 @@ void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasuremen
 		_pc2_msg_raw.row_step      = _pc2_msg_raw.width * _pc2_msg_raw.point_step;
 		_pc2_msg_raw.data.resize(_pc2_msg_raw.row_step);
 
-		auto data_ptr = reinterpret_cast<measurement::PointData*>(_pc2_msg_raw.data.data());
-
 		idx = 0;
+		std::uint8_t* data_ptr = _pc2_msg_raw.data.data();
 		for(const auto& measurement : measurement_vec){
 			// prepare combined measurement
-			std::copy(measurement.point_cloud.begin(), measurement.point_cloud.end(), data_ptr);
-			data_ptr += measurement.point_cloud.size();
+			data_ptr = packPointData(measurement, data_ptr);
 
 			// prepare and publish individual measurement
 			auto& msg = _pc2_msg_individual_vec.at(idx);
-			auto data_ptr_individual = reinterpret_cast<measurement::PointData*>(msg.data.data());
-			std::copy(measurement.point_cloud.begin(), measurement.point_cloud.end(), data_ptr_individual);
+			std::uint8_t* data_ptr_individual =  msg.data.data();
+			packPointData(measurement, data_ptr_individual);
 			_pointcloud_pub_individual_vec.at(idx)->publish(msg);
 			idx++;
 		}
@@ -255,11 +249,9 @@ void SensorRingProxy::onTransformedTofMeasurement(std::vector<measurement::TofMe
 		_pc2_msg_transformed.row_step      = _pc2_msg_transformed.width * _pc2_msg_transformed.point_step;
 		_pc2_msg_transformed.data.resize(_pc2_msg_transformed.row_step);
 
-		auto data_ptr = reinterpret_cast<measurement::PointData*>(_pc2_msg_transformed.data.data());
-
+		std::uint8_t* data_ptr = _pc2_msg_transformed.data.data();
 		for(const auto& measurement : measurement_vec){
-			std::copy(measurement.point_cloud.begin(), measurement.point_cloud.end(), data_ptr);
-			data_ptr += measurement.point_cloud.size();
+			data_ptr = packPointData(measurement, data_ptr);
 		}
 
 		_pointcloud_pub_transformed->publish(_pc2_msg_transformed);
@@ -323,6 +315,22 @@ void SensorRingProxy::stopThermalCalibration(	const std::shared_ptr<edu_sensorri
 void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
                                 				std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response){
 	response->output = _manager->startThermalCalibration((std::size_t)request->window);
+}
+
+std::uint8_t* SensorRingProxy::packPointData(const measurement::TofMeasurement& src, std::uint8_t* dst)
+{
+	for (const auto& p : src.point_cloud) {
+		float* f = reinterpret_cast<float*>(dst);
+		f[0] = static_cast<float>(p.point.data[0]);
+		f[1] = static_cast<float>(p.point.data[1]);
+		f[2] = static_cast<float>(p.point.data[2]);
+		f[3] = static_cast<float>(p.raw_distance);
+		f[4] = static_cast<float>(p.sigma);
+		reinterpret_cast<int32_t*>(f + 5)[0] = p.user_idx;
+		dst += sizeof(measurement::PointData);
+	}
+
+	return dst;
 }
 
 }

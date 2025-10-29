@@ -5,6 +5,7 @@
         tf_name: "base_sensorring"
         print_topology: true
         enforce_topology: false
+        repair_errors: true
         frequency_tof_hz: 0.0 # max frequency ~ 13.6...14.1 Hz (0.0 -> free running)
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
