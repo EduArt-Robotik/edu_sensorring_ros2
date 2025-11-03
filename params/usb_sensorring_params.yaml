@@ -3,10 +3,13 @@
     pointcloud_sensor:
       base_setup:
         tf_name: "base_sensorring"
-        print_topology: false
+        timeout_ms: 1000
+        enable_brs: true
+        repair_errors: true
+        print_topology: true
+        enforce_topology: false
         frequency_tof_hz: 0.0 # max frequency ~ 13.6...14.1 Hz (0.0 -> free running)
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
-        timeout_ms: 1000
       thermal_config:
         auto_min_max: true
         use_eeprom_file: true
@@ -16,20 +19,22 @@
         scale_t_min_deg: 20.0
         scale_t_max_deg: 35.0
       led_config:
-        initial_mode: 9 #		Off = 0, Dimmed = 1, HighBeam = 2, FlashAll = 3, FlashLeft = 4, FlashRight = 5, Pulsation = 6, Rotation = 7, Running = 8, MapDistance = 9
+        initial_mode: 0 #		Off = 0, Dimmed = 1, HighBeam = 2, FlashAll = 3, FlashLeft = 4, FlashRight = 5, Pulsation = 6, Rotation = 7, Running = 8, MapDistance = 9
         initial_color: [64, 64, 64]
       topology:
         nr_of_interfaces: 1
         can_interfaces:
           can_interface_0:
-            interface_type: "usbtingo"
-            interface_name: "0x1731a1f1"
+            #interface_type: "usbtingo"
+            #interface_name: "0x1731a1f1"
+            interface_type: "socketcan"
+            interface_name: "can0"
             orientation: "left"
             nr_of_sensors: 3
             sensors:
               sensor_0:
                 enable_tof: true
-                enable_thermal: true
+                enable_thermal: false
                 enable_light : true
                 rotation: [0.0, 0.0, 0.0]
                 translation: [0.0, 0.0, 0.0]
@@ -48,6 +53,46 @@
                 enable_thermal: false
                 enable_light : true
                 rotation: [0.0, 0.0, 0.0]
-                translation: [0.0, 0.078, 0.0]
+                translation: [0.0, 0.156, 0.0]
+                #rotation: [81.563, 0.0, 145.0]
+                #translation: [0.045, 0.106, 0.106]
+              sensor_3:
+                enable_tof: true
+                enable_thermal: false
+                enable_light : true
+                rotation: [0.0, 0.0, 0.0]
+                translation: [0.0, 0.156, 0.0]
+                #rotation: [81.563, 0.0, 145.0]
+                #translation: [0.045, 0.106, 0.106]
+              sensor_4:
+                enable_tof: true
+                enable_thermal: false
+                enable_light : true
+                rotation: [0.0, 0.0, 0.0]
+                translation: [0.0, 0.156, 0.0]
+                #rotation: [81.563, 0.0, 145.0]
+                #translation: [0.045, 0.106, 0.106]
+              sensor_5:
+                enable_tof: true
+                enable_thermal: false
+                enable_light : true
+                rotation: [0.0, 0.0, 0.0]
+                translation: [0.0, 0.156, 0.0]
+                #rotation: [81.563, 0.0, 145.0]
+                #translation: [0.045, 0.106, 0.106]
+              sensor_6:
+                enable_tof: true
+                enable_thermal: false
+                enable_light : true
+                rotation: [0.0, 0.0, 0.0]
+                translation: [0.0, 0.156, 0.0]
+                #rotation: [81.563, 0.0, 145.0]
+                #translation: [0.045, 0.106, 0.106]
+              sensor_7:
+                enable_tof: true
+                enable_thermal: false
+                enable_light : true
+                rotation: [0.0, 0.0, 0.0]
+                translation: [0.0, 0.156, 0.0]
                 #rotation: [81.563, 0.0, 145.0]
                 #translation: [0.045, 0.106, 0.106]
