@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 
 #########################################################
 # build type (has to be done before project() call)
@@ -38,7 +38,26 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
-find_package(sensorring 1.0.0 REQUIRED)
+find_package(sensorring QUIET)
+
+if(NOT sensorring_found)
+  message(STATUS "Did not find edu_lib_sensorring. Cloning it from GitHub ...")
+
+  set(BUILD_SHARED_LIBS ON) # important
+  set(USE_USBTINGO ON)
+  set(BUILD_EXAMPLES OFF)
+  set(BUILD_UTILS OFF)
+
+  include(FetchContent)
+  FetchContent_Declare(
+    sensorring
+    URL      https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/heads/master.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP OFF
+  )
+
+  FetchContent_MakeAvailable(sensorring)
+  add_library(sensorring::sensorring ALIAS sensorring)
+endif()
 
 #########################################################
 # generate services
@@ -66,7 +85,7 @@ target_link_libraries(${PROJECT_NAME}_node
   sensorring::sensorring
 )
 
-ament_target_dependencies(${PROJECT_NAME}_node rclcpp sensor_msgs geometry_msgs tf2_ros tf2 sensorring)
+ament_target_dependencies(${PROJECT_NAME}_node rclcpp sensor_msgs geometry_msgs tf2_ros tf2)
 
 #########################################################
 # install node
