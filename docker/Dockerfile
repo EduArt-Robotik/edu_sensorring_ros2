@@ -6,16 +6,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 # install packages
 USER root
 RUN apt-get update \
-    && apt-get install -y software-properties-common build-essential git
+    && apt-get install -y software-properties-common build-essential git \
+    && apt-get install -y cmake build-essential libusb-1.0-0 libusb-1.0-0-dev
 
 USER $USER
-
-# get the sensorring library from github
-RUN mkdir -p /home/$USER/eduart_ws/ \
-    && cd /home/$USER/eduart_ws \
-    && git clone --depth 1 --branch v2.0.0 https://github.com/EduArt-Robotik/edu_lib_sensorring.git \
-    && cd edu_lib_sensorring \
-    && sudo ./cmake/install_release.bash
 
 # set up ros workspace
 RUN mkdir -p /home/$USER/ros/src/
