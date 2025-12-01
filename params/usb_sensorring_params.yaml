@@ -26,7 +26,7 @@
         can_interfaces:
           can_interface_0:
             #interface_type: "usbtingo"
-            #interface_name: "0x1731a1f1"
+            #interface_name: "0"
             interface_type: "socketcan"
             interface_name: "can0"
             orientation: "left"

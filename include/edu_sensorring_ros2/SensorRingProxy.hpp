@@ -7,7 +7,7 @@
 #include "edu_sensorring_ros2/srv/start_thermal_calibration.hpp"
 #include "edu_sensorring_ros2/srv/stop_thermal_calibration.hpp"
 
-#include <sensorring/Logger.hpp>
+#include <sensorring/logger/Logger.hpp>
 #include <sensorring/MeasurementManager.hpp>
 
 #include <vector>
@@ -28,13 +28,13 @@ namespace sensorring{
 
         void onStateChange(manager::ManagerState state) override;
 
-        void onRawTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec) override;
+        void onRawTofMeasurement(const std::vector<measurement::TofMeasurement>& measurement_vec) override;
 
-        void onTransformedTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec) override;
+        void onTransformedTofMeasurement(const std::vector<measurement::TofMeasurement>& measurement_vec) override;
 
-        void onThermalMeasurement(std::vector<measurement::ThermalMeasurement> measurement_vec) override;
+        void onThermalMeasurement(const std::vector<measurement::ThermalMeasurement>& measurement_vec) override;
 
-        void onOutputLog(const logger::LogVerbosity verbosity, const std::string msg) override;
+        void onOutputLog(const logger::LogVerbosity verbosity, const std::string& msg) override;
 
     private:
 

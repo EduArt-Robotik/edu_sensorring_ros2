@@ -16,7 +16,7 @@ services:
             - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
             - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
         network_mode: "host"
-        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch edu_sensorring_ros2.launch.py'
+        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch sensorring.launch.py'
         # command: /bin/bash
         # stdin_open: true
         volumes:
