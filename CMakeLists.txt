@@ -10,7 +10,7 @@ ENDIF()
 
 #########################################################
 # project
-set(CMAKE_PROJECT_VERSION_MAJOR 1)
+set(CMAKE_PROJECT_VERSION_MAJOR 3)
 set(CMAKE_PROJECT_VERSION_MINOR 0)
 set(CMAKE_PROJECT_VERSION_PATCH 0)
 set(CMAKE_PROJECT_VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}.${CMAKE_PROJECT_VERSION_PATCH}")
@@ -43,15 +43,14 @@ find_package(sensorring QUIET)
 if(NOT sensorring_found)
   message(STATUS "Did not find edu_lib_sensorring. Cloning it from GitHub ...")
 
-  set(BUILD_SHARED_LIBS ON) # important
-  set(USE_USBTINGO ON)
-  set(BUILD_EXAMPLES OFF)
-  set(BUILD_UTILS OFF)
+  set(SENSORRING_BUILD_SHARED_LIBS ON) # important
+  set(SENSORRING_INSTALL_DEV_COMPONENTS OFF)
+  set(SENSORRING_USE_USBTINGO ON)
 
   include(FetchContent)
   FetchContent_Declare(
     sensorring
-    URL      https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/heads/master.zip
+    URL      https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v3.0.0.zip
     DOWNLOAD_EXTRACT_TIMESTAMP OFF
   )
 
