@@ -50,6 +50,72 @@ ros2 launch edu_sensorring_ros2 edu_sensorring_ros2.launch.py
 
 >Note:<br> The launchfile [edu_sensorring_ros2.launch.py](launch/edu_sensorring_ros2.launch.py) uses the parameter set [edu_bot_sensorring_params.yaml](params/edu_bot_sensorring_params.yaml). You likely need to change the parameters to match your hardware configuration. Either create your own launchfile and parameter file or adjust the existing parameter file.
 
+# Configuration Modes
+
+The node supports three configuration modes that control how hardware discovery and topology validation are handled. The mode is selected via two parameters in `base_setup`:
+
+| `auto_discover` | `enforce_topology` | Mode | Description |
+|---|---|---|---|
+| `true` | *(ignored)* | **Auto-Discover** | No sensor boards need to be declared. The factory discovers all connected hardware on the configured interfaces. All sensor poses default to identity (zero rotation/translation). Ideal for quick testing or setups where precise transforms are not needed. |
+| `false` | `false` | **Relaxed** | Sensor boards are declared with their poses in the parameter file. The factory matches declared boards to physical hardware but **ignores** any extra connected boards not listed in the configuration. This is the default mode. |
+| `false` | `true` | **Strict** | Sensor boards are declared with their poses in the parameter file. Every declared board **must** match a physical board exactly. If any declared board is missing or unexpected boards are found, the node will fail to start. Use this for production deployments where the topology must be guaranteed. |
+
+## Auto-Discover Mode
+
+The simplest configuration only requires specifying the communication interface(s). The node will discover all connected sensor boards and start publishing measurements immediately. Sensor poses are identity (all points in their local sensor frame).
+
+```yaml
+pointcloud_sensor:
+  base_setup:
+    auto_discover: true
+  topology:
+    nr_of_interfaces: 1
+    can_interfaces:
+      can_interface_0:
+        interface_type: "socketcan"
+        interface_name: "can0"
+```
+
+Use the included launch file for auto-discovery:
+```
+ros2 launch edu_sensorring_ros2 auto_discover_sensorring.launch.py
+```
+
+## Relaxed Mode (Default)
+
+Declare the boards you care about with their poses. Any additional connected boards will be silently ignored. This is useful when you only want to process a subset of the connected sensors.
+
+```yaml
+pointcloud_sensor:
+  base_setup:
+    auto_discover: false
+    enforce_topology: false
+  topology:
+    nr_of_interfaces: 1
+    can_interfaces:
+      can_interface_0:
+        interface_type: "socketcan"
+        interface_name: "can0"
+        orientation: "left"
+        nr_of_sensors: 3
+        sensors:
+          sensor_0:
+            rotation: [90.0, 0.0, 45.0]
+            translation: [0.1, 0.0, 0.05]
+          # ... more sensors
+```
+
+## Strict Mode
+
+Same as relaxed mode but the factory validates that the declared topology exactly matches the physical hardware. Use this in production to catch wiring or hardware issues early.
+
+```yaml
+pointcloud_sensor:
+  base_setup:
+    auto_discover: false
+    enforce_topology: true
+```
+
 
 ## Running the node in a container
 

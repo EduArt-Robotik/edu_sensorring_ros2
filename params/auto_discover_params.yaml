@@ -1,0 +1,29 @@
+/**:
+  ros__parameters:
+    pointcloud_sensor:
+      base_setup:
+        tf_name: "base_sensorring"
+        auto_discover: true
+        enforce_topology: false
+        repair_errors: true
+        frequency_tof_hz: 0.0 # 0.0 -> free running at hardware max rate
+        frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
+        timeout_ms: 1000
+        enable_brs: false
+      thermal_config:
+        auto_min_max: true
+        use_eeprom_file: false
+        use_calibration_file: false
+        eeprom_file_dir: ""
+        calibration_file_dir: ""
+        scale_t_min_deg: 20.0
+        scale_t_max_deg: 35.0
+      led_config:
+        initial_mode: 0 # Off
+        initial_color: [0, 0, 0]
+      topology:
+        nr_of_interfaces: 1
+        can_interfaces:
+          can_interface_0:
+            interface_type: "socketcan"
+            interface_name: "can0"
