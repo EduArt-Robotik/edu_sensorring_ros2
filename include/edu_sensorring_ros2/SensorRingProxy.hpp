@@ -1,68 +1,70 @@
+#pragma once
 
+#include <memory>
+#include <sensorring/logger/Logger.hpp>
+#include <sensorring/manager/MeasurementManager.hpp>
+#include <sensorring/measurement/DepthMeasurement.hpp>
+#include <sensorring/measurement/ThermalMeasurement.hpp>
+#include <sensorring/subscription/Subscription.hpp>
+#include <string>
+#include <vector>
 
-
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "sensor_msgs/msg/image.hpp"
 #include "edu_sensorring_ros2/srv/start_thermal_calibration.hpp"
 #include "edu_sensorring_ros2/srv/stop_thermal_calibration.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/image.hpp"
+#include "sensor_msgs/msg/point_cloud2.hpp"
 
-#include <sensorring/logger/Logger.hpp>
-#include <sensorring/MeasurementManager.hpp>
+namespace eduart {
 
-#include <vector>
-#include <memory>
-#include <string>
+namespace sensorring {
 
-namespace eduart{
+class SensorRingProxy : public rclcpp::Node {
+public:
+  SensorRingProxy(std::string node_name);
 
-namespace sensorring{
+  ~SensorRingProxy();
 
-    class SensorRingProxy : public rclcpp::Node, manager::MeasurementClient, logger::LoggerClient {
-    public:
-        SensorRingProxy(std::string node_name);
+  bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, device::LightMode initial_light_mode = device::LightMode::Off, std::uint8_t red = 0, std::uint8_t green = 0, std::uint8_t blue = 0);
 
-        ~SensorRingProxy();
+private:
+  void onStateChange(const manager::ManagerState state);
 
-        bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, light::LightMode initial_light_mode = light::LightMode::Off, std::uint8_t red = 0, std::uint8_t green = 0, std::uint8_t blue = 0);
+  void onDepthFrame(const std::vector<measurement::DepthMeasurement>& frame);
 
-        void onStateChange(manager::ManagerState state) override;
+  void onThermalFrame(const std::vector<measurement::ThermalMeasurement>& frame);
 
-        void onRawTofMeasurement(const std::vector<measurement::TofMeasurement>& measurement_vec) override;
+  void onLogMessage(const logger::LogVerbosity verbosity, const std::string& msg);
 
-        void onTransformedTofMeasurement(const std::vector<measurement::TofMeasurement>& measurement_vec) override;
+  void stopThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Request> request, std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Response> response);
+  void startThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request, std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response);
 
-        void onThermalMeasurement(const std::vector<measurement::ThermalMeasurement>& measurement_vec) override;
+  std::uint8_t* packPointData(const measurement::DepthMeasurement& src, std::uint8_t* dst);
 
-        void onOutputLog(const logger::LogVerbosity verbosity, const std::string& msg) override;
+  std::unique_ptr<manager::MeasurementManager> _manager;
+  std::vector<subscription::Subscription> _subscriptions;
 
-    private:
+  // Combined point cloud publishers
+  sensor_msgs::msg::PointCloud2 _pc2_msg_raw;
+  std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2> > _pointcloud_pub_raw;
 
-        void stopThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Request> request,
-                                    std::shared_ptr<edu_sensorring_ros2::srv::StopThermalCalibration::Response> response);
-        void startThermalCalibration(const std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Request> request,
-                                    std::shared_ptr<edu_sensorring_ros2::srv::StartThermalCalibration::Response> response);
-        
-        std::uint8_t* packPointData(const measurement::TofMeasurement& src, std::uint8_t* dst);
+  sensor_msgs::msg::PointCloud2 _pc2_msg_transformed;
+  std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2> > _pointcloud_pub_transformed;
 
-        std::unique_ptr<manager::MeasurementManager> _manager;
+  // Individual sensor point cloud publishers
+  std::vector<sensor_msgs::msg::PointCloud2> _pc2_msg_individual_vec;
+  std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2> > > _pointcloud_pub_individual_vec;
 
-        sensor_msgs::msg::PointCloud2 _pc2_msg_raw;
-        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub_raw;
+  // Thermal image publishers
+  std::vector<std::shared_ptr<sensor_msgs::msg::Image> > _img_msg_vec;
+  std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image> > > _img_pub_vec;
 
-        sensor_msgs::msg::PointCloud2 _pc2_msg_transformed;
-        std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>> _pointcloud_pub_transformed;
+  std::vector<std::shared_ptr<sensor_msgs::msg::Image> > _colorimg_msg_vec;
+  std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image> > > _colorimg_pub_vec;
 
-        std::vector<sensor_msgs::msg::PointCloud2> _pc2_msg_individual_vec;
-        std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::PointCloud2>>> _pointcloud_pub_individual_vec;
-
-        std::vector<std::shared_ptr<sensor_msgs::msg::Image>> _img_msg_vec;
-        std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image>>> _img_pub_vec;
-
-        std::vector<std::shared_ptr<sensor_msgs::msg::Image>> _colorimg_msg_vec;
-        std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image>>> _colorimg_pub_vec;
-
-    };
+  std::string _tf_name;
 };
 
-};
+} // namespace sensorring
+
+} // namespace eduart
