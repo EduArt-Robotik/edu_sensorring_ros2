@@ -25,7 +25,7 @@ public:
 
   ~SensorRingProxy();
 
-  bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, device::LightMode initial_light_mode = device::LightMode::Off, std::uint8_t red = 0, std::uint8_t green = 0, std::uint8_t blue = 0);
+  bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name);
 
 private:
   void onStateChange(const manager::ManagerState state);

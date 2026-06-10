@@ -191,8 +191,14 @@ int main(int argc, char* argv[]) {
   }
 
   // Build the MeasurementManager using the factory
-  auto measurement_manager = std::make_unique<manager::MeasurementManager>(manager_params, factory);
-  bool success             = measurement_node->run(std::move(measurement_manager), tf_name, light_initial_mode, light_color[0], light_color[1], light_color[2]);
+  auto manager = std::make_unique<manager::MeasurementManager>(manager_params, factory);
+
+  // Set initial light mode on all lights
+  for (auto& light : manager->lights()) {
+    light.setLight(light_initial_mode, light_color[0], light_color[1], light_color[2]);
+  }
+
+  bool success = measurement_node->run(std::move(manager), tf_name);
   rclcpp::shutdown();
 
   return success ? 0 : 1;

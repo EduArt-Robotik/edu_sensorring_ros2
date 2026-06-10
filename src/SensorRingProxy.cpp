@@ -20,7 +20,7 @@ SensorRingProxy::~SensorRingProxy() {
   // Subscriptions are automatically cancelled when _subscriptions vector is destroyed
 }
 
-bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, device::LightMode initial_light_mode, std::uint8_t red, std::uint8_t green, std::uint8_t blue) {
+bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name) {
 
   _manager = std::move(manager);
   _tf_name = tf_name;
@@ -36,11 +36,6 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 
   // Subscribe to thermal sensors (synchronized frame delivery)
   _subscriptions.emplace_back(_manager->thermalSensors().subscribeAll(std::bind(&SensorRingProxy::onThermalFrame, this, std::placeholders::_1)));
-
-  // Set initial light mode on all lights
-  for (auto& light : _manager->lights()) {
-    light.setLight(initial_light_mode, red, green, blue);
-  }
 
   // Store sensor count for setup
   std::size_t depth_sensor_count = _manager->depthSensors().size();
