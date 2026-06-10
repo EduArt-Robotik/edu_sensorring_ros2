@@ -14,6 +14,9 @@ static constexpr std::size_t PACKED_POINT_SIZE = 5 * sizeof(float) + sizeof(int3
 
 SensorRingProxy::SensorRingProxy(std::string node_name)
     : Node(node_name) {
+
+  // Subscribe to logger first to capture all messages
+  _subscriptions.emplace_back(logger::Logger::getInstance()->subscribe(std::bind(&SensorRingProxy::onLogMessage, this, std::placeholders::_1, std::placeholders::_2)));
 }
 
 SensorRingProxy::~SensorRingProxy() {
@@ -24,9 +27,6 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 
   _manager = std::move(manager);
   _tf_name = tf_name;
-
-  // Subscribe to logger
-  _subscriptions.emplace_back(logger::Logger::getInstance()->subscribe(std::bind(&SensorRingProxy::onLogMessage, this, std::placeholders::_1, std::placeholders::_2)));
 
   // Subscribe to state changes
   _subscriptions.emplace_back(_manager->subscribeToStateChanges(std::bind(&SensorRingProxy::onStateChange, this, std::placeholders::_1)));
