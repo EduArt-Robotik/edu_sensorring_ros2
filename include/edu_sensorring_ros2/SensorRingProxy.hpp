@@ -6,6 +6,7 @@
 #include <sensorring/measurement/DepthMeasurement.hpp>
 #include <sensorring/measurement/ThermalMeasurement.hpp>
 #include <sensorring/subscription/Subscription.hpp>
+#include <std_msgs/msg/color_rgba.hpp>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,8 @@ public:
   bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name);
 
 private:
+  void onLightColor(std_msgs::msg::ColorRGBA::SharedPtr msg);
+
   void onStateChange(const manager::ManagerState state);
 
   void onDepthFrame(const std::vector<measurement::DepthMeasurement>& frame);
@@ -43,6 +46,9 @@ private:
 
   std::unique_ptr<manager::MeasurementManager> _manager;
   std::vector<subscription::Subscription> _subscriptions;
+
+  // Light color subscriber
+  rclcpp::Subscription<std_msgs::msg::ColorRGBA>::SharedPtr _light_sub;
 
   // Combined point cloud publishers
   sensor_msgs::msg::PointCloud2 _pc2_msg_raw;

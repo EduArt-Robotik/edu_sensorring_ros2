@@ -1,5 +1,7 @@
 #include "SensorRingProxy.hpp"
 
+#include <algorithm>
+
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
 #include "tf2/LinearMath/Quaternion.h"
@@ -156,6 +158,9 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
     _colorimg_pub_vec.push_back(colorimg_pub);
   }
 
+  // Set up light color subscriber
+  _light_sub = this->create_subscription<std_msgs::msg::ColorRGBA>("/lights/set_color", 1, std::bind(&SensorRingProxy::onLightColor, this, std::placeholders::_1));
+
   // Set up ROS services
   auto stop_cali_srv = this->create_service<edu_sensorring_ros2::srv::StopThermalCalibration>(
       std::string(this->get_name()) + "/stopThermalCalibration", std::bind(&SensorRingProxy::stopThermalCalibration, this, std::placeholders::_1, std::placeholders::_2));
@@ -176,6 +181,16 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
   }
 
   return success;
+}
+
+void SensorRingProxy::onLightColor(std_msgs::msg::ColorRGBA::SharedPtr msg) {
+  // Set all lights to the received color
+  for (auto& light : _manager->lights()) {
+    const auto r = static_cast<std::uint8_t>(std::clamp(msg->r, 0.0f, 1.0f) * 255);
+    const auto g = static_cast<std::uint8_t>(std::clamp(msg->g, 0.0f, 1.0f) * 255);
+    const auto b = static_cast<std::uint8_t>(std::clamp(msg->b, 0.0f, 1.0f) * 255);
+    light.setLight(device::LightMode::FixedColor, r, g, b);
+  }
 }
 
 void SensorRingProxy::onStateChange(const manager::ManagerState state) {
