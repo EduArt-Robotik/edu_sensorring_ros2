@@ -1,5 +1,7 @@
 #include <sensorring/SensorRingFactory.hpp>
 #include <sensorring/board/SensorBoardParams.hpp>
+#include <sensorring/device/depth/tmf8829/TMF8829_Params.hpp>
+#include <sensorring/device/depth/vl53l8cx/VL53L8CX_Params.hpp>
 #include <sensorring/device/light/LightMode.hpp>
 #include <sensorring/device/thermal/htpa32/HTPA32_Params.hpp>
 #include <sensorring/interface/ComInterfaceID.hpp>
@@ -76,7 +78,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // Configure default thermal sensor parameters
+  // Configure default htpa32 sensor parameters
   device::HTPA32_Params htpa32_defaults;
   htpa32_defaults.auto_min_max         = thermal_auto_min_max;
   htpa32_defaults.use_eeprom_file      = thermal_use_eeprom_file;
@@ -86,10 +88,19 @@ int main(int argc, char* argv[]) {
   htpa32_defaults.t_min_deg_c          = thermal_t_min;
   htpa32_defaults.t_max_deg_c          = thermal_t_max;
 
+  // Configure default vl53l8cx sensor parameters
+  device::VL53L8CX_Params vl53l8cx_defaults;
+
+  // Configure default tmf8829 sensor parameters
+  device::TMF8829_Params tmf8829_defaults;
+  tmf8829_defaults.resolution_mode = device::ResolutionMode::Res16x16;
+
   // Create factory with validation mode based on enforce_topology parameter
   ValidationMode validation_mode = enforce_topology ? ValidationMode::Strict : ValidationMode::Relaxed;
   SensorRingFactory factory(validation_mode);
   factory.setDefaultDeviceParams(htpa32_defaults);
+  factory.setDefaultDeviceParams(vl53l8cx_defaults);
+  factory.setDefaultDeviceParams(tmf8829_defaults);
 
   if (auto_discover) {
     // Auto-discover mode: only add interfaces, no board expectations.
