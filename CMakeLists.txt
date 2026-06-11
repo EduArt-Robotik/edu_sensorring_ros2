@@ -73,6 +73,7 @@ rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typ
 add_executable(${PROJECT_NAME}_node
   src/sensorring_node.cpp
   src/SensorRingProxy.cpp
+  src/NodeSetup.cpp
 )
 
 target_include_directories(${PROJECT_NAME}_node PRIVATE
