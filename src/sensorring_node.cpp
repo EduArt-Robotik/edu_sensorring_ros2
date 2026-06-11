@@ -36,13 +36,18 @@ int main(int argc, char* argv[]) {
   measurement_node->declare_parameter(param_namespace + ".base_setup.auto_discover", false);
   measurement_node->declare_parameter(param_namespace + ".base_setup.frequency_tof_hz", 0.0);
   measurement_node->declare_parameter(param_namespace + ".base_setup.frequency_thermal_hz", 5.0);
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.auto_min_max", true);
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.use_eeprom_file", false);
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.use_calibration_file", false);
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.eeprom_file_dir", "");
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.calibration_file_dir", "");
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.scale_t_min_deg", 15.0);
-  measurement_node->declare_parameter(param_namespace + ".thermal_config.scale_t_max_deg", 25.0);
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.auto_min_max", true);
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.use_eeprom_file", false);
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.use_calibration_file", false);
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.eeprom_file_dir", "");
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.calibration_file_dir", "");
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.scale_t_min_deg", 20.0);
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.scale_t_max_deg", 30.0);
+  measurement_node->declare_parameter(param_namespace + ".htpa32_config.max_rate_hz", 5.0);
+  measurement_node->declare_parameter(param_namespace + ".vl53l8cx_config.max_rate_hz", 15.0);
+  measurement_node->declare_parameter(param_namespace + ".tmf8829_config.resolution_mode", 3); // 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
+  measurement_node->declare_parameter(param_namespace + ".tmf8829_config.k_iterations", 0);
+  measurement_node->declare_parameter(param_namespace + ".tmf8829_config.max_rate_hz", 30.0);
   measurement_node->declare_parameter(param_namespace + ".topology.nr_of_interfaces", 1);
 
   manager_params.timeout              = std::chrono::milliseconds(measurement_node->get_parameter(param_namespace + ".base_setup.timeout_ms").as_int());
@@ -53,13 +58,18 @@ int main(int argc, char* argv[]) {
   bool auto_discover                  = measurement_node->get_parameter(param_namespace + ".base_setup.auto_discover").as_bool();
   manager_params.frequency_tof_hz     = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_tof_hz").as_double();
   manager_params.frequency_thermal_hz = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_thermal_hz").as_double();
-  bool thermal_auto_min_max           = measurement_node->get_parameter(param_namespace + ".thermal_config.auto_min_max").as_bool();
-  bool thermal_use_eeprom_file        = measurement_node->get_parameter(param_namespace + ".thermal_config.use_eeprom_file").as_bool();
-  bool thermal_use_calibration_file   = measurement_node->get_parameter(param_namespace + ".thermal_config.use_calibration_file").as_bool();
-  std::string thermal_eeprom_dir      = measurement_node->get_parameter(param_namespace + ".thermal_config.eeprom_file_dir").as_string();
-  std::string thermal_calibration_dir = measurement_node->get_parameter(param_namespace + ".thermal_config.calibration_file_dir").as_string();
-  double thermal_t_min                = measurement_node->get_parameter(param_namespace + ".thermal_config.scale_t_min_deg").as_double();
-  double thermal_t_max                = measurement_node->get_parameter(param_namespace + ".thermal_config.scale_t_max_deg").as_double();
+  bool thermal_auto_min_max           = measurement_node->get_parameter(param_namespace + ".htpa32_config.auto_min_max").as_bool();
+  bool thermal_use_eeprom_file        = measurement_node->get_parameter(param_namespace + ".htpa32_config.use_eeprom_file").as_bool();
+  bool thermal_use_calibration_file   = measurement_node->get_parameter(param_namespace + ".htpa32_config.use_calibration_file").as_bool();
+  std::string thermal_eeprom_dir      = measurement_node->get_parameter(param_namespace + ".htpa32_config.eeprom_file_dir").as_string();
+  std::string thermal_calibration_dir = measurement_node->get_parameter(param_namespace + ".htpa32_config.calibration_file_dir").as_string();
+  double thermal_t_min                = measurement_node->get_parameter(param_namespace + ".htpa32_config.scale_t_min_deg").as_double();
+  double thermal_t_max                = measurement_node->get_parameter(param_namespace + ".htpa32_config.scale_t_max_deg").as_double();
+  double htpa32_max_rate_hz           = measurement_node->get_parameter(param_namespace + ".htpa32_config.max_rate_hz").as_double();
+  double vl53l8cx_max_rate_hz         = measurement_node->get_parameter(param_namespace + ".vl53l8cx_config.max_rate_hz").as_double();
+  int tmf8829_resolution_mode_code    = measurement_node->get_parameter(param_namespace + ".tmf8829_config.resolution_mode").as_int();
+  int tmf8829_k_iterations            = measurement_node->get_parameter(param_namespace + ".tmf8829_config.k_iterations").as_int();
+  double tmf8829_max_rate_hz          = measurement_node->get_parameter(param_namespace + ".tmf8829_config.max_rate_hz").as_double();
 
   measurement_node->declare_parameter(param_namespace + ".led_config.initial_mode", 0);
   measurement_node->declare_parameter(param_namespace + ".led_config.initial_color", std::vector<int>{ 0, 0, 0 });
@@ -87,13 +97,17 @@ int main(int argc, char* argv[]) {
   htpa32_defaults.calibration_dir      = thermal_calibration_dir;
   htpa32_defaults.t_min_deg_c          = thermal_t_min;
   htpa32_defaults.t_max_deg_c          = thermal_t_max;
+  htpa32_defaults.max_rate_hz          = htpa32_max_rate_hz;
 
   // Configure default vl53l8cx sensor parameters
   device::VL53L8CX_Params vl53l8cx_defaults;
+  vl53l8cx_defaults.max_rate_hz = vl53l8cx_max_rate_hz;
 
   // Configure default tmf8829 sensor parameters
   device::TMF8829_Params tmf8829_defaults;
-  tmf8829_defaults.resolution_mode = device::ResolutionMode::Res16x16;
+  tmf8829_defaults.resolution_mode = static_cast<device::ResolutionMode>(tmf8829_resolution_mode_code);
+  tmf8829_defaults.k_iterations    = static_cast<std::uint16_t>(tmf8829_k_iterations);
+  tmf8829_defaults.max_rate_hz     = tmf8829_max_rate_hz;
 
   // Create factory with validation mode based on enforce_topology parameter
   ValidationMode validation_mode = enforce_topology ? ValidationMode::Strict : ValidationMode::Relaxed;
@@ -108,11 +122,11 @@ int main(int argc, char* argv[]) {
     // All sensor poses default to identity (zero rotation/translation).
     RCLCPP_INFO(measurement_node->get_logger(), "Auto-discover mode enabled. Discovering hardware on configured interfaces...");
 
-    int nr_of_can_interfaces       = measurement_node->get_parameter(param_namespace + ".topology.nr_of_interfaces").as_int();
-    std::string topology_namespace = param_namespace + ".topology.can_interfaces";
+    int nr_of_interfaces           = measurement_node->get_parameter(param_namespace + ".topology.nr_of_interfaces").as_int();
+    std::string topology_namespace = param_namespace + ".topology.interfaces";
 
-    for (int i = 0; i < nr_of_can_interfaces; i++) {
-      std::string interface_param_name = ".can_interface_" + std::to_string(i);
+    for (int i = 0; i < nr_of_interfaces; i++) {
+      std::string interface_param_name = ".interface_" + std::to_string(i);
       measurement_node->declare_parameter(topology_namespace + interface_param_name + ".interface_type", "undefined");
       measurement_node->declare_parameter(topology_namespace + interface_param_name + ".interface_name", "can0");
 
@@ -132,12 +146,12 @@ int main(int argc, char* argv[]) {
     }
   } else {
     // Configured mode: read full topology from parameters
-    int nr_of_can_interfaces       = measurement_node->get_parameter(param_namespace + ".topology.nr_of_interfaces").as_int();
-    std::string topology_namespace = param_namespace + ".topology.can_interfaces";
+    int nr_of_interfaces           = measurement_node->get_parameter(param_namespace + ".topology.nr_of_interfaces").as_int();
+    std::string topology_namespace = param_namespace + ".topology.interfaces";
 
-    for (int i = 0; i < nr_of_can_interfaces; i++) {
+    for (int i = 0; i < nr_of_interfaces; i++) {
 
-      std::string interface_param_name = ".can_interface_" + std::to_string(i);
+      std::string interface_param_name = ".interface_" + std::to_string(i);
       measurement_node->declare_parameter(topology_namespace + interface_param_name + ".interface_type", "undefined");
       measurement_node->declare_parameter(topology_namespace + interface_param_name + ".interface_name", "can0");
       measurement_node->declare_parameter(topology_namespace + interface_param_name + ".orientation", "none");

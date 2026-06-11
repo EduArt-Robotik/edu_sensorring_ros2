@@ -10,7 +10,7 @@
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
         enable_brs: true
-      thermal_config:
+      htpa32_config:
         auto_min_max: false
         use_eeprom_file: true
         use_calibration_file: true
@@ -18,13 +18,20 @@
         calibration_file_dir: ".eduart/sensorring/calibration"
         scale_t_min_deg: 20.0
         scale_t_max_deg: 35.0
+        max_rate_hz: 5.0
+      vl53l8cx_config:
+        max_rate_hz: 15.0
+      tmf8829_config:
+        resolution_mode: 3 # 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
+        k_iterations: 0
+        max_rate_hz: 30.0
       led_config:
         initial_mode: 9 #		Off = 0, Dimmed = 1, HighBeam = 2, FlashAll = 3, FlashLeft = 4, FlashRight = 5, Pulsation = 6, Rotation = 7, Running = 8, MapDistance = 9
         initial_color: [64, 64, 64]
       topology:
         nr_of_interfaces: 2
-        can_interfaces:
-          can_interface_0:
+        interfaces:
+          interface_0:
             interface_type: "socketcan"
             interface_name: "eduart-can1"
             orientation: "right"
@@ -67,7 +74,7 @@
                 rotation: [81.563, 0.0, -90.0]
                 translation: [-0.180, 0.000, 0.082]
 
-          can_interface_1:
+          interface_1:
             interface_type: "socketcan"
             interface_name: "eduart-can0"
             orientation: "left"

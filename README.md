@@ -70,8 +70,8 @@ pointcloud_sensor:
     auto_discover: true
   topology:
     nr_of_interfaces: 1
-    can_interfaces:
-      can_interface_0:
+    interfaces:
+      interface_0:
         interface_type: "socketcan"
         interface_name: "can0"
 ```
@@ -92,8 +92,8 @@ pointcloud_sensor:
     enforce_topology: false
   topology:
     nr_of_interfaces: 1
-    can_interfaces:
-      can_interface_0:
+    interfaces:
+      interface_0:
         interface_type: "socketcan"
         interface_name: "can0"
         orientation: "left"
