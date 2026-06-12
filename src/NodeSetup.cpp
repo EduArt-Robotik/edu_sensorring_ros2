@@ -89,6 +89,18 @@ LightSetup readLightSetup(rclcpp::Node& node, const std::string& ns) {
   return result;
 }
 
+DepthPublishSetup readDepthPublishSetup(rclcpp::Node& node, const std::string& ns) {
+  node.declare_parameter(ns + ".base_setup.publishers.depth_individual", true);
+  node.declare_parameter(ns + ".base_setup.publishers.depth_combined", true);
+  node.declare_parameter(ns + ".base_setup.publishers.depth_raw", true);
+
+  DepthPublishSetup result;
+  result.enable_individual = node.get_parameter(ns + ".base_setup.publishers.depth_individual").as_bool();
+  result.enable_combined   = node.get_parameter(ns + ".base_setup.publishers.depth_combined").as_bool();
+  result.enable_raw        = node.get_parameter(ns + ".base_setup.publishers.depth_raw").as_bool();
+  return result;
+}
+
 com::InterfaceType parseInterfaceType(const std::string& type_str) {
   if (type_str == "socketcan")
     return com::InterfaceType::SocketCan;

@@ -26,7 +26,7 @@ public:
 
   ~SensorRingProxy();
 
-  bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name);
+  bool run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, bool enable_individual_publish = true, bool enable_combined_publish = true, bool enable_raw_publish = true);
 
 private:
   void onLightColor(std_msgs::msg::ColorRGBA::SharedPtr msg);
@@ -69,6 +69,9 @@ private:
   std::vector<std::shared_ptr<rclcpp::Publisher<sensor_msgs::msg::Image> > > _colorimg_pub_vec;
 
   std::string _tf_name;
+  bool _enable_individual_publish = true;
+  bool _enable_combined_publish   = true;
+  bool _enable_raw_publish        = true;
 };
 
 } // namespace sensorring

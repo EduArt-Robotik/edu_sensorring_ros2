@@ -5,6 +5,10 @@
         tf_name: "base_sensorring"
         timeout_ms: 1000
         enable_brs: true
+        publishers:
+          depth_individual: true
+          depth_combined: true
+          depth_raw: false
         repair_errors: true
         auto_discover: false
         enforce_topology: false

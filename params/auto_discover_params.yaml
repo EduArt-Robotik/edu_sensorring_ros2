@@ -10,6 +10,10 @@
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
         enable_brs: false
+        publishers:
+          depth_individual: true
+          depth_combined: true
+          depth_raw: false
       htpa32_config:
         auto_min_max: true
         use_eeprom_file: false

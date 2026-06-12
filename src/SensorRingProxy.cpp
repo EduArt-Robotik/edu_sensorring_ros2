@@ -25,10 +25,13 @@ SensorRingProxy::~SensorRingProxy() {
   // Subscriptions are automatically cancelled when _subscriptions vector is destroyed
 }
 
-bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name) {
+bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, std::string tf_name, bool enable_individual_publish, bool enable_combined_publish, bool enable_raw_publish) {
 
-  _manager = std::move(manager);
-  _tf_name = tf_name;
+  _manager                   = std::move(manager);
+  _tf_name                   = tf_name;
+  _enable_individual_publish = enable_individual_publish;
+  _enable_combined_publish   = enable_combined_publish;
+  _enable_raw_publish        = enable_raw_publish;
 
   // Subscribe to state changes
   _subscriptions.emplace_back(_manager->subscribeToStateChanges(std::bind(&SensorRingProxy::onStateChange, this, std::placeholders::_1)));
@@ -92,8 +95,12 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
   _pc2_msg_transformed = pc2_msg;
 
   // Create combined pointCloud2 publishers
-  _pointcloud_pub_raw         = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
-  _pointcloud_pub_transformed = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_transformed", 1);
+  if (_enable_raw_publish) {
+    _pointcloud_pub_raw = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_raw", 1);
+  }
+  if (_enable_combined_publish) {
+    _pointcloud_pub_transformed = this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_transformed", 1);
+  }
 
   // Prepare individual sensor publishers and static transforms using depth sensor poses from the header
   std::vector<std::shared_ptr<tf2_ros::StaticTransformBroadcaster> > tf_broadcasters;
@@ -121,11 +128,12 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 
     tf_broadcaster->sendTransform(t);
 
-    // Prepare individual publisher
-    sensor_msgs::msg::PointCloud2 individual_msg = pc2_msg;
-    individual_msg.header.frame_id               = t.child_frame_id;
-    _pc2_msg_individual_vec.push_back(individual_msg);
-    _pointcloud_pub_individual_vec.push_back(this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_individual/sensor_" + std::to_string(i), 1));
+    if (_enable_individual_publish) {
+      sensor_msgs::msg::PointCloud2 individual_msg = pc2_msg;
+      individual_msg.header.frame_id               = t.child_frame_id;
+      _pc2_msg_individual_vec.push_back(individual_msg);
+      _pointcloud_pub_individual_vec.push_back(this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_individual/sensor_" + std::to_string(i), 1));
+    }
   }
 
   // Prepare thermal image publishers
@@ -205,51 +213,61 @@ void SensorRingProxy::onDepthFrame(const std::vector<measurement::DepthMeasureme
   auto now = this->now();
 
   // Publish individual sensor point clouds
-  for (std::size_t idx = 0; idx < frame.size(); idx++) {
-    if (idx < _pc2_msg_individual_vec.size()) {
-      auto& msg        = _pc2_msg_individual_vec.at(idx);
-      msg.header.stamp = now;
-      msg.width        = frame[idx].point_cloud.data.size();
-      msg.row_step     = msg.width * msg.point_step;
-      msg.data.resize(msg.row_step);
-      packPointData(frame[idx], msg.data.data());
-      _pointcloud_pub_individual_vec.at(idx)->publish(msg);
+  if (_enable_individual_publish) {
+    for (std::size_t idx = 0; idx < frame.size(); idx++) {
+      if (idx < _pc2_msg_individual_vec.size()) {
+        auto& msg        = _pc2_msg_individual_vec.at(idx);
+        msg.header.stamp = now;
+        msg.width        = frame[idx].point_cloud.data.size();
+        msg.row_step     = msg.width * msg.point_step;
+        msg.data.resize(msg.row_step);
+        packPointData(frame[idx], msg.data.data());
+        _pointcloud_pub_individual_vec.at(idx)->publish(msg);
+      }
     }
   }
 
-  // Publish combined raw point cloud
+  if (!_enable_raw_publish && !_enable_combined_publish) {
+    return;
+  }
+
   std::size_t total_points = 0;
   for (const auto& m : frame) {
     total_points += m.point_cloud.data.size();
   }
 
-  _pc2_msg_raw.header.stamp = now;
-  _pc2_msg_raw.width        = total_points;
-  _pc2_msg_raw.row_step     = _pc2_msg_raw.width * _pc2_msg_raw.point_step;
-  _pc2_msg_raw.data.resize(_pc2_msg_raw.row_step);
+  // Publish combined raw point cloud
+  if (_enable_raw_publish) {
+    _pc2_msg_raw.header.stamp = now;
+    _pc2_msg_raw.width        = total_points;
+    _pc2_msg_raw.row_step     = _pc2_msg_raw.width * _pc2_msg_raw.point_step;
+    _pc2_msg_raw.data.resize(_pc2_msg_raw.row_step);
 
-  std::uint8_t* raw_ptr = _pc2_msg_raw.data.data();
-  for (const auto& m : frame) {
-    raw_ptr = packPointData(m, raw_ptr);
+    std::uint8_t* raw_ptr = _pc2_msg_raw.data.data();
+    for (const auto& m : frame) {
+      raw_ptr = packPointData(m, raw_ptr);
+    }
+    _pointcloud_pub_raw->publish(_pc2_msg_raw);
   }
-  _pointcloud_pub_raw->publish(_pc2_msg_raw);
 
   // Publish combined transformed point cloud
-  _pc2_msg_transformed.header.stamp = now;
-  _pc2_msg_transformed.width        = total_points;
-  _pc2_msg_transformed.row_step     = _pc2_msg_transformed.width * _pc2_msg_transformed.point_step;
-  _pc2_msg_transformed.data.resize(_pc2_msg_transformed.row_step);
+  if (_enable_combined_publish) {
+    _pc2_msg_transformed.header.stamp = now;
+    _pc2_msg_transformed.width        = total_points;
+    _pc2_msg_transformed.row_step     = _pc2_msg_transformed.width * _pc2_msg_transformed.point_step;
+    _pc2_msg_transformed.data.resize(_pc2_msg_transformed.row_step);
 
-  std::uint8_t* transformed_ptr = _pc2_msg_transformed.data.data();
-  for (const auto& m : frame) {
-    auto transformed_cloud = m.transformToGlobalFrame();
-    measurement::DepthMeasurement transformed_meas;
-    transformed_meas.header          = m.header;
-    transformed_meas.point_cloud     = transformed_cloud;
-    transformed_meas.nr_valid_points = m.nr_valid_points;
-    transformed_ptr                  = packPointData(transformed_meas, transformed_ptr);
+    std::uint8_t* transformed_ptr = _pc2_msg_transformed.data.data();
+    for (const auto& m : frame) {
+      auto transformed_cloud = m.transformToGlobalFrame();
+      measurement::DepthMeasurement transformed_meas;
+      transformed_meas.header          = m.header;
+      transformed_meas.point_cloud     = transformed_cloud;
+      transformed_meas.nr_valid_points = m.nr_valid_points;
+      transformed_ptr                  = packPointData(transformed_meas, transformed_ptr);
+    }
+    _pointcloud_pub_transformed->publish(_pc2_msg_transformed);
   }
-  _pointcloud_pub_transformed->publish(_pc2_msg_transformed);
 }
 
 void SensorRingProxy::onThermalFrame(const std::vector<measurement::ThermalMeasurement>& frame) {

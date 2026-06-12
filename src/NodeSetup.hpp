@@ -32,6 +32,15 @@ struct LightSetup {
   std::vector<long> color; ///< RGB values, each in [0, 255]
 };
 
+/**
+ * @brief Holds depth point cloud publish behavior flags.
+ */
+struct DepthPublishSetup {
+  bool enable_individual;
+  bool enable_combined;
+  bool enable_raw;
+};
+
 /// Declares and reads base manager parameters from @p node under @p ns.
 BaseSetup readBaseSetup(rclcpp::Node& node, const std::string& ns);
 
@@ -46,6 +55,9 @@ device::TMF8829_Params readTmf8829Params(rclcpp::Node& node, const std::string& 
 
 /// Declares and reads LED configuration from @p node under @p ns. Validates color range.
 LightSetup readLightSetup(rclcpp::Node& node, const std::string& ns);
+
+/// Declares and reads depth point cloud publish flags from @p node under @p ns.
+DepthPublishSetup readDepthPublishSetup(rclcpp::Node& node, const std::string& ns);
 
 /// Maps an interface type string ("socketcan", "usbtingo") to a @c com::InterfaceType.
 com::InterfaceType parseInterfaceType(const std::string& type_str);

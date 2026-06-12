@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
   const auto vl53l8cx_defaults = readVl53l8cxParams(*node, ns);
   const auto tmf8829_defaults  = readTmf8829Params(*node, ns);
   const auto light             = readLightSetup(*node, ns);
+  const auto depth_publish     = readDepthPublishSetup(*node, ns);
 
   // Build factory and configure topology
   const ValidationMode validation_mode = base.enforce_topology ? ValidationMode::Strict : ValidationMode::Relaxed;
@@ -41,7 +42,7 @@ int main(int argc, char* argv[]) {
     l.setLight(light.mode, light.color[0], light.color[1], light.color[2]);
   }
 
-  const bool success = node->run(std::move(manager), base.tf_name);
+  const bool success = node->run(std::move(manager), base.tf_name, depth_publish.enable_individual, depth_publish.enable_combined, depth_publish.enable_raw);
   rclcpp::shutdown();
   return success ? 0 : 1;
 }
