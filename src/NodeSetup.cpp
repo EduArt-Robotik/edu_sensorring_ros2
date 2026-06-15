@@ -144,9 +144,15 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
     for (int j = 0; j < nr_of_sensors; j++) {
       const std::string sensor_prefix = sensors_prefix + ".sensor_" + std::to_string(j);
 
+      node.declare_parameter(sensor_prefix + ".enable_tof", true);
+      node.declare_parameter(sensor_prefix + ".enable_thermal", false);
+      node.declare_parameter(sensor_prefix + ".enable_light", false);
       node.declare_parameter(sensor_prefix + ".rotation", std::vector<double>{ 0.0, 0.0, 0.0 });
       node.declare_parameter(sensor_prefix + ".translation", std::vector<double>{ 0.0, 0.0, 0.0 });
 
+      const bool enable_tof                 = node.get_parameter(sensor_prefix + ".enable_tof").as_bool();
+      const bool enable_thermal             = node.get_parameter(sensor_prefix + ".enable_thermal").as_bool();
+      const bool enable_light               = node.get_parameter(sensor_prefix + ".enable_light").as_bool();
       const std::vector<double> rotation    = node.get_parameter(sensor_prefix + ".rotation").as_double_array();
       const std::vector<double> translation = node.get_parameter(sensor_prefix + ".translation").as_double_array();
 
@@ -161,10 +167,22 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
       board_params.rotation    = { rotation[0], rotation[1], rotation[2] };
       board_params.translation = { translation[0], translation[1], translation[2] };
 
+      std::vector<SensorRingFactory::DeviceParamsVariant> expected_devices;
+      if (enable_tof) {
+        expected_devices.emplace_back(device::AnyDepthSensor_Params{});
+      }
+
       device::HTPA32_Params thermal_params = htpa32_defaults;
       thermal_params.orientation           = orientation;
+      if (enable_thermal) {
+        expected_devices.emplace_back(thermal_params);
+      }
 
-      factory.expectBoard(board_params, { thermal_params });
+      if (enable_light) {
+        expected_devices.emplace_back(device::AnyLight_Params{});
+      }
+
+      factory.expectBoard(board_params, expected_devices);
     }
   }
 }
