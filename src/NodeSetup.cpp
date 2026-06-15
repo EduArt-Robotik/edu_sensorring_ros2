@@ -8,7 +8,6 @@ namespace eduart::sensorring {
 
 BaseSetup readBaseSetup(rclcpp::Node& node, const std::string& ns) {
   node.declare_parameter(ns + ".base_setup.timeout_ms", 1000);
-  node.declare_parameter(ns + ".base_setup.enable_brs", false);
   node.declare_parameter(ns + ".base_setup.repair_errors", true);
   node.declare_parameter(ns + ".base_setup.tf_name", "base_sensorring");
   node.declare_parameter(ns + ".base_setup.enforce_topology", false);
@@ -18,7 +17,6 @@ BaseSetup readBaseSetup(rclcpp::Node& node, const std::string& ns) {
 
   BaseSetup result;
   result.manager_params.timeout              = std::chrono::milliseconds(node.get_parameter(ns + ".base_setup.timeout_ms").as_int());
-  result.manager_params.enable_brs           = node.get_parameter(ns + ".base_setup.enable_brs").as_bool();
   result.manager_params.repair_errors        = node.get_parameter(ns + ".base_setup.repair_errors").as_bool();
   result.manager_params.frequency_tof_hz     = node.get_parameter(ns + ".base_setup.frequency_tof_hz").as_double();
   result.manager_params.frequency_thermal_hz = node.get_parameter(ns + ".base_setup.frequency_thermal_hz").as_double();
@@ -119,11 +117,20 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
 
     node.declare_parameter(iface_prefix + ".interface_type", "undefined");
     node.declare_parameter(iface_prefix + ".interface_name", "can0");
+    node.declare_parameter(iface_prefix + ".enable_brs", false);
 
-    com::ComInterfaceID iface;
-    iface.name = node.get_parameter(iface_prefix + ".interface_name").as_string();
-    iface.type = parseInterfaceType(node.get_parameter(iface_prefix + ".interface_type").as_string());
-    factory.addInterface(iface);
+    const std::string iface_name        = node.get_parameter(iface_prefix + ".interface_name").as_string();
+    const std::string iface_type_str    = node.get_parameter(iface_prefix + ".interface_type").as_string();
+    const bool iface_brs                = node.get_parameter(iface_prefix + ".enable_brs").as_bool();
+    const com::InterfaceType iface_type = parseInterfaceType(iface_type_str);
+
+    if (iface_type == com::InterfaceType::SocketCan) {
+      factory.addInterface(com::SocketCanParams(iface_name, iface_brs));
+    } else if (iface_type == com::InterfaceType::UsbTingo) {
+      factory.addInterface(com::UsbTingoParams(iface_name, iface_brs));
+    } else {
+      factory.addInterface(com::SocketCanParams(iface_name, iface_brs));
+    }
 
     if (auto_discover)
       continue;
@@ -157,10 +164,10 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
       const std::vector<double> translation = node.get_parameter(sensor_prefix + ".translation").as_double_array();
 
       if (rotation.size() != 3) {
-        throw std::invalid_argument("Rotation vector of sensor " + std::to_string(j) + " on interface " + iface.name + " has wrong length!");
+        throw std::invalid_argument("Rotation vector of sensor " + std::to_string(j) + " on interface " + iface_name + " has wrong length!");
       }
       if (translation.size() != 3) {
-        throw std::invalid_argument("Translation vector of sensor " + std::to_string(j) + " on interface " + iface.name + " has wrong length!");
+        throw std::invalid_argument("Translation vector of sensor " + std::to_string(j) + " on interface " + iface_name + " has wrong length!");
       }
 
       board::SensorBoardParams board_params;

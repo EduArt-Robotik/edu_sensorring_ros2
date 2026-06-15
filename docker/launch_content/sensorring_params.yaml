@@ -32,7 +32,9 @@
         nr_of_interfaces: 2
         interfaces:
           interface_0:
+            interface_type: "socketcan"
             interface_name: "eduart-can0"
+            enable_brs: false
             orientation: "right"
             nr_of_sensors: 6
             sensors:
@@ -74,7 +76,9 @@
                 translation: [-0.180, 0.000, 0.082]
 
           interface_1:
+            interface_type: "socketcan"
             interface_name: "eduart-can1"
+            enable_brs: false
             orientation: "left"
             nr_of_sensors: 6
             sensors:

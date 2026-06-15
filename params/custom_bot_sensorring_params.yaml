@@ -9,7 +9,6 @@
         frequency_tof_hz: 0.0 # max frequency ~ 13.6...14.1 Hz (0.0 -> free running)
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
-        enable_brs: true
         publishers:
           depth_individual: true
           depth_combined: true
@@ -38,6 +37,7 @@
           interface_0:
             interface_type: "socketcan"
             interface_name: "eduart-can1"
+            enable_brs: false
             orientation: "right"
             nr_of_sensors: 6
             sensors:
@@ -81,6 +81,7 @@
           interface_1:
             interface_type: "socketcan"
             interface_name: "eduart-can0"
+            enable_brs: false
             orientation: "left"
             nr_of_sensors: 6
             sensors:

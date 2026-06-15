@@ -9,7 +9,6 @@
         frequency_tof_hz: 0.0 # 0.0 -> free running at hardware max rate
         frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
-        enable_brs: false
         publishers:
           depth_individual: true
           depth_combined: true
@@ -38,7 +37,9 @@
           interface_0:
             interface_type: "socketcan"
             interface_name: "can0"
+            enable_brs: false
           interface_1:
             interface_type: "usbtingo"
             interface_name: "0"
+            enable_brs: false
 

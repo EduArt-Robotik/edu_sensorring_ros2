@@ -4,7 +4,6 @@
       base_setup:
         tf_name: "base_sensorring"
         timeout_ms: 1000
-        enable_brs: true
         publishers:
           depth_individual: true
           depth_combined: true
@@ -40,6 +39,7 @@
             #interface_name: "0"
             interface_type: "socketcan"
             interface_name: "can0"
+            enable_brs: false
             orientation: "left"
             nr_of_sensors: 3
             sensors:

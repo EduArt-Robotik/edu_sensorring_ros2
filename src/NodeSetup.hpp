@@ -6,6 +6,7 @@
 #include <sensorring/device/light/LightMode.hpp>
 #include <sensorring/device/thermal/htpa32/HTPA32_Params.hpp>
 #include <sensorring/interface/ComInterfaceID.hpp>
+#include <sensorring/interface/InterfaceParams.hpp>
 #include <sensorring/manager/ManagerParams.hpp>
 #include <string>
 #include <vector>
