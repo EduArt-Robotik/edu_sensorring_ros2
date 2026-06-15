@@ -42,9 +42,6 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
   // Subscribe to thermal sensors (synchronized frame delivery)
   _subscriptions.emplace_back(_manager->thermalSensors().subscribeAll(std::bind(&SensorRingProxy::onThermalFrame, this, std::placeholders::_1)));
 
-  // Store sensor count for setup
-  std::size_t depth_sensor_count = _manager->depthSensors().size();
-
   // Prepare PointCloud2 message template
   sensor_msgs::msg::PointCloud2 pc2_msg;
   pc2_msg.header.frame_id = tf_name;
@@ -104,9 +101,12 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 
   // Prepare individual sensor publishers and static transforms using depth sensor poses from the header
   std::vector<std::shared_ptr<tf2_ros::StaticTransformBroadcaster> > tf_broadcasters;
-  for (std::size_t i = 0; i < depth_sensor_count; i++) {
-    auto& sensor       = _manager->depthSensors()[i];
-    const auto& latest = sensor.getLatestMeasurement();
+
+  const auto& depth_sensors = _manager->depthSensors();
+  for (const auto& sensor : depth_sensors) {
+    const auto& pose = sensor.getGlobalPose();
+    const auto& idx =  sensor.getDeviceID().getIndex();
+    const auto idx_str = std::to_string(idx);
 
     auto tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
     tf_broadcasters.push_back(tf_broadcaster);
@@ -114,13 +114,13 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
     geometry_msgs::msg::TransformStamped t;
     t.header.stamp    = this->now();
     t.header.frame_id = tf_name;
-    t.child_frame_id  = "sensor_" + std::to_string(i);
+    t.child_frame_id  = "sensor_" + idx_str;
 
-    t.transform.translation.x = latest.header.position.x();
-    t.transform.translation.y = latest.header.position.y();
-    t.transform.translation.z = latest.header.position.z();
+    t.transform.translation.x = pose.translation.x();
+    t.transform.translation.y = pose.translation.y();
+    t.transform.translation.z = pose.translation.z();
     tf2::Quaternion q;
-    q.setRPY(latest.header.orientation.x() * M_PI / 180.0, latest.header.orientation.y() * M_PI / 180.0, latest.header.orientation.z() * M_PI / 180.0);
+    q.setRPY(pose.orientation.x() * M_PI / 180.0, pose.orientation.y() * M_PI / 180.0, pose.orientation.z() * M_PI / 180.0);
     t.transform.rotation.x = q.x();
     t.transform.rotation.y = q.y();
     t.transform.rotation.z = q.z();
@@ -132,7 +132,7 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
       sensor_msgs::msg::PointCloud2 individual_msg = pc2_msg;
       individual_msg.header.frame_id               = t.child_frame_id;
       _pc2_msg_individual_vec.push_back(individual_msg);
-      _pointcloud_pub_individual_vec.push_back(this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_individual/sensor_" + std::to_string(i), 1));
+      _pointcloud_pub_individual_vec.push_back(this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_individual/sensor_" + idx_str, 1));
     }
   }
 
