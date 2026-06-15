@@ -174,22 +174,21 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
       board_params.rotation    = { rotation[0], rotation[1], rotation[2] };
       board_params.translation = { translation[0], translation[1], translation[2] };
 
-      std::vector<SensorRingFactory::DeviceParamsVariant> expected_devices;
+      factory.expectBoard(board_params);
+
       if (enable_tof) {
-        expected_devices.emplace_back(device::AnyDepthSensor_Params{});
+        factory.expectDevice(device::AnyDepthSensor_Params{});
       }
 
       device::HTPA32_Params thermal_params = htpa32_defaults;
       thermal_params.orientation           = orientation;
       if (enable_thermal) {
-        expected_devices.emplace_back(thermal_params);
+        factory.expectDevice(thermal_params);
       }
 
       if (enable_light) {
-        expected_devices.emplace_back(device::AnyLight_Params{});
+        factory.expectDevice(device::AnyLight_Params{});
       }
-
-      factory.expectBoard(board_params, expected_devices);
     }
   }
 }

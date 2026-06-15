@@ -43,12 +43,14 @@ source ~/ros2_ws/install/setup.bash
 ### 4. Start the node
 To start the node use the included launchfile.
 ```
-ros2 launch edu_sensorring_ros2 edu_sensorring_ros2.launch.py
+cd ~/ros2_ws
+source install/setup.bash
+ros2 launch edu_sensorring_ros2 sensorring.launch.py
 ```
 
 >Note:<br> The launchfile launches the node in a namespace that is set by the environment variable `EDU_ROBOT_NAMESPACE`. The default value is `eduard`.
 
->Note:<br> The launchfile [edu_sensorring_ros2.launch.py](launch/edu_sensorring_ros2.launch.py) uses the parameter set [edu_bot_sensorring_params.yaml](params/edu_bot_sensorring_params.yaml). You likely need to change the parameters to match your hardware configuration. Either create your own launchfile and parameter file or adjust the existing parameter file.
+>Note:<br> The launchfile [sensorring.launch.py](launch/sensorring.launch.py) uses the parameter set [auto_discover_params.yaml](params/auto_discover_params.yaml). You likely need to change the parameters to match your hardware configuration. Either create your own launchfile and parameter file or adjust the existing parameter file.
 
 # Configuration Modes
 
@@ -59,6 +61,17 @@ The node supports three configuration modes that control how hardware discovery 
 | `true` | *(ignored)* | **Auto-Discover** | No sensor boards need to be declared. The factory discovers all connected hardware on the configured interfaces. All sensor poses default to identity (zero rotation/translation). Ideal for quick testing or setups where precise transforms are not needed. |
 | `false` | `false` | **Relaxed** | Sensor boards are declared with their poses in the parameter file. The factory matches declared boards to physical hardware but **ignores** any extra connected boards not listed in the configuration. This is the default mode. |
 | `false` | `true` | **Strict** | Sensor boards are declared with their poses in the parameter file. Every declared board **must** match a physical board exactly. If any declared board is missing or unexpected boards are found, the node will fail to start. Use this for production deployments where the topology must be guaranteed. |
+
+## Factory Topology API
+
+The ROS2 node is configured for the current `edu_lib_sensorring` factory API.
+
+In non-auto-discover mode, each configured board is declared in two steps:
+
+1. `expectBoard(board_params)` declares the board pose and board-level information.
+2. `expectDevice(...)` is called once per enabled sensor type (`AnyDepthSensor`, `HTPA32`, `AnyLight`) to define which devices are expected on that board.
+
+This replaces the older pattern where a board and a device list were passed together in one call.
 
 ## Auto-Discover Mode
 
@@ -78,6 +91,8 @@ pointcloud_sensor:
 
 Use the included launch file for auto-discovery:
 ```
+cd ~/ros2_ws
+source install/setup.bash
 ros2 launch edu_sensorring_ros2 auto_discover_sensorring.launch.py
 ```
 
