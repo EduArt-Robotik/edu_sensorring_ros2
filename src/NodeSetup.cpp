@@ -118,18 +118,22 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
     node.declare_parameter(iface_prefix + ".interface_type", "undefined");
     node.declare_parameter(iface_prefix + ".interface_name", "can0");
     node.declare_parameter(iface_prefix + ".enable_brs", false);
+    node.declare_parameter(iface_prefix + ".data_baudrate", 0);
+    node.declare_parameter(iface_prefix + ".sample_point", 0.0);
 
     const std::string iface_name        = node.get_parameter(iface_prefix + ".interface_name").as_string();
     const std::string iface_type_str    = node.get_parameter(iface_prefix + ".interface_type").as_string();
     const bool iface_brs                = node.get_parameter(iface_prefix + ".enable_brs").as_bool();
+    const unsigned int data_baudrate    = node.get_parameter(iface_prefix + ".data_baudrate").as_int();
+    const double sample_point           = node.get_parameter(iface_prefix + ".sample_point").as_double();
     const com::InterfaceType iface_type = parseInterfaceType(iface_type_str);
 
     if (iface_type == com::InterfaceType::SocketCan) {
-      factory.addInterface(com::SocketCanParams(iface_name, iface_brs));
+      factory.addInterface(com::SocketCanParams(iface_name, iface_brs, data_baudrate, sample_point));
     } else if (iface_type == com::InterfaceType::UsbTingo) {
-      factory.addInterface(com::UsbTingoParams(iface_name, iface_brs));
+      factory.addInterface(com::UsbTingoParams(iface_name, iface_brs, data_baudrate, sample_point));
     } else {
-      factory.addInterface(com::SocketCanParams(iface_name, iface_brs));
+      factory.addInterface(com::SocketCanParams(iface_name, iface_brs, data_baudrate, sample_point));
     }
 
     if (auto_discover)
