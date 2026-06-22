@@ -12,17 +12,13 @@ BaseSetup readBaseSetup(rclcpp::Node& node, const std::string& ns) {
   node.declare_parameter(ns + ".base_setup.tf_name", "base_sensorring");
   node.declare_parameter(ns + ".base_setup.enforce_topology", false);
   node.declare_parameter(ns + ".base_setup.auto_discover", false);
-  node.declare_parameter(ns + ".base_setup.frequency_tof_hz", 0.0);
-  node.declare_parameter(ns + ".base_setup.frequency_thermal_hz", 5.0);
 
   BaseSetup result;
-  result.manager_params.timeout              = std::chrono::milliseconds(node.get_parameter(ns + ".base_setup.timeout_ms").as_int());
-  result.manager_params.repair_errors        = node.get_parameter(ns + ".base_setup.repair_errors").as_bool();
-  result.manager_params.frequency_tof_hz     = node.get_parameter(ns + ".base_setup.frequency_tof_hz").as_double();
-  result.manager_params.frequency_thermal_hz = node.get_parameter(ns + ".base_setup.frequency_thermal_hz").as_double();
-  result.tf_name                             = node.get_parameter(ns + ".base_setup.tf_name").as_string();
-  result.enforce_topology                    = node.get_parameter(ns + ".base_setup.enforce_topology").as_bool();
-  result.auto_discover                       = node.get_parameter(ns + ".base_setup.auto_discover").as_bool();
+  result.manager_params.timeout       = std::chrono::milliseconds(node.get_parameter(ns + ".base_setup.timeout_ms").as_int());
+  result.manager_params.repair_errors = node.get_parameter(ns + ".base_setup.repair_errors").as_bool();
+  result.tf_name                      = node.get_parameter(ns + ".base_setup.tf_name").as_string();
+  result.enforce_topology             = node.get_parameter(ns + ".base_setup.enforce_topology").as_bool();
+  result.auto_discover                = node.get_parameter(ns + ".base_setup.auto_discover").as_bool();
   return result;
 }
 
@@ -139,17 +135,9 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
     if (auto_discover)
       continue;
 
-    node.declare_parameter(iface_prefix + ".orientation", "none");
     node.declare_parameter(iface_prefix + ".nr_of_sensors", 1);
 
-    const std::string orientation_str = node.get_parameter(iface_prefix + ".orientation").as_string();
-    const int nr_of_sensors           = node.get_parameter(iface_prefix + ".nr_of_sensors").as_int();
-
-    device::Orientation orientation = device::Orientation::None;
-    if (orientation_str == "left")
-      orientation = device::Orientation::Left;
-    if (orientation_str == "right")
-      orientation = device::Orientation::Right;
+    const int nr_of_sensors = node.get_parameter(iface_prefix + ".nr_of_sensors").as_int();
 
     const std::string sensors_prefix = iface_prefix + ".sensors";
     for (int j = 0; j < nr_of_sensors; j++) {
@@ -158,14 +146,22 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
       node.declare_parameter(sensor_prefix + ".enable_tof", true);
       node.declare_parameter(sensor_prefix + ".enable_thermal", false);
       node.declare_parameter(sensor_prefix + ".enable_light", false);
+      node.declare_parameter(sensor_prefix + ".orientation", "none");
       node.declare_parameter(sensor_prefix + ".rotation", std::vector<double>{ 0.0, 0.0, 0.0 });
       node.declare_parameter(sensor_prefix + ".translation", std::vector<double>{ 0.0, 0.0, 0.0 });
 
       const bool enable_tof                 = node.get_parameter(sensor_prefix + ".enable_tof").as_bool();
       const bool enable_thermal             = node.get_parameter(sensor_prefix + ".enable_thermal").as_bool();
       const bool enable_light               = node.get_parameter(sensor_prefix + ".enable_light").as_bool();
+      const std::string orientation_str     = node.get_parameter(sensor_prefix + ".orientation").as_string();
       const std::vector<double> rotation    = node.get_parameter(sensor_prefix + ".rotation").as_double_array();
       const std::vector<double> translation = node.get_parameter(sensor_prefix + ".translation").as_double_array();
+
+      board::Orientation orientation = board::Orientation::None;
+      if (orientation_str == "left")
+        orientation = board::Orientation::Left;
+      if (orientation_str == "right")
+        orientation = board::Orientation::Right;
 
       if (rotation.size() != 3) {
         throw std::invalid_argument("Rotation vector of sensor " + std::to_string(j) + " on interface " + iface_name + " has wrong length!");
@@ -177,21 +173,21 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
       board::SensorBoardParams board_params;
       board_params.rotation    = { rotation[0], rotation[1], rotation[2] };
       board_params.translation = { translation[0], translation[1], translation[2] };
+      board_params.orientation = orientation;
 
       factory.expectBoard(board_params);
 
       if (enable_tof) {
-        factory.expectDevice(device::AnyDepthSensor_Params{});
+        factory.expectDevice(device::DepthSensorParams{});
       }
 
       device::HTPA32_Params thermal_params = htpa32_defaults;
-      thermal_params.orientation           = orientation;
       if (enable_thermal) {
         factory.expectDevice(thermal_params);
       }
 
       if (enable_light) {
-        factory.expectDevice(device::AnyLight_Params{});
+        factory.expectDevice(device::LightParams{});
       }
     }
   }

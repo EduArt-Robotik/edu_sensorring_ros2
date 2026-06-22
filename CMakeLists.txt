@@ -50,7 +50,7 @@ if(NOT sensorring_found)
   include(FetchContent)
   FetchContent_Declare(
     sensorring
-    URL      https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v3.0.0.zip
+    URL      https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v4.0.0-alpha.5.zip
     DOWNLOAD_EXTRACT_TIMESTAMP OFF
   )
 

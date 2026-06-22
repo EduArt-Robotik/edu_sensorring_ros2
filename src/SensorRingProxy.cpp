@@ -104,8 +104,8 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 
   const auto& depth_sensors = _manager->depthSensors();
   for (const auto& sensor : depth_sensors) {
-    const auto& pose = sensor.getGlobalPose();
-    const auto& idx =  sensor.getDeviceID().getIndex();
+    const auto& pose   = sensor.getGlobalPose();
+    const auto& idx    = sensor.getDeviceID().getIndex();
     const auto idx_str = std::to_string(idx);
 
     auto tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);

@@ -6,8 +6,6 @@
         auto_discover: false
         enforce_topology: false
         repair_errors: true
-        frequency_tof_hz: 0.0 # max frequency ~ 13.6...14.1 Hz (0.0 -> free running)
-        frequency_thermal_hz: 5.0 # max frequency ~ 5.0 Hz
         timeout_ms: 1000
         publishers:
           depth_individual: true
@@ -38,19 +36,20 @@
             interface_type: "socketcan"
             interface_name: "eduart-can1"
             enable_brs: false
-            orientation: "right"
             nr_of_sensors: 6
             sensors:
               sensor_0: # Headlight front right
                 enable_tof: true
                 enable_thermal: false
                 enable_light : true
+                orientation: "right"
                 rotation: [-90.0, -19.7, -110.0]
                 translation: [0.183, -0.066, 0.044]
               sensor_1: # Taillight rear right
                 enable_tof: true
                 enable_thermal: false
                 enable_light : true
+                orientation: "right"
                 rotation: [0.0, 90.0, 200.0]
                 translation: [-0.180, -0.066, 0.052]
 
@@ -58,18 +57,19 @@
             interface_type: "socketcan"
             interface_name: "eduart-can0"
             enable_brs: false
-            orientation: "left"
             nr_of_sensors: 6
             sensors:
               sensor_0: # Headlight front left
                 enable_tof: true
                 enable_thermal: false
                 enable_light : true
+                orientation: "left"
                 rotation: [90.000, -19.7, 110.0]
                 translation: [0.183, 0.066, 0.044]
               sensor_1: # Taillight rear left
                 enable_tof: true
                 enable_thermal: false
                 enable_light : true
+                orientation: "left"
                 rotation: [0.0, -90.0, -20.0]
                 translation: [-0.180, 0.066, 0.052]
