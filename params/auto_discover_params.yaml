@@ -7,11 +7,12 @@
         enforce_topology: false
         repair_errors: true
         timeout_ms: 1000
-        publishers:
-          depth_individual: true
-          depth_combined: true
-          depth_raw: false
+      publishers:
+        depth_individual: true
+        depth_combined: true
+        depth_raw: false
       htpa32_config:
+        enable: false
         auto_min_max: true
         use_eeprom_file: false
         use_calibration_file: false
@@ -21,8 +22,10 @@
         scale_t_max_deg: 35.0
         max_rate_hz: 5.0
       vl53l8cx_config:
+        enable: true
         max_rate_hz: 15.0
       tmf8829_config:
+        enable: true
         resolution_mode: 3 # 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
         k_iterations: 0
         max_rate_hz: 30.0
@@ -34,10 +37,10 @@
         interfaces:
           interface_0:
             interface_type: "socketcan"
-            interface_name: "can0"
+            interface_name: "eduart-can0"
             enable_brs: false
           interface_1:
-            interface_type: "usbtingo"
-            interface_name: "0"
+            interface_type: "socketcan"
+            interface_name: "eduart-can1"
             enable_brs: false
 

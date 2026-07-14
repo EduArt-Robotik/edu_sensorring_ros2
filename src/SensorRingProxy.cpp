@@ -1,6 +1,7 @@
 #include "SensorRingProxy.hpp"
 
 #include <algorithm>
+#include <sstream>
 
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "sensor_msgs/msg/point_field.hpp"
@@ -101,12 +102,13 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 
   // Prepare individual sensor publishers and static transforms using depth sensor poses from the header
   std::vector<std::shared_ptr<tf2_ros::StaticTransformBroadcaster> > tf_broadcasters;
+  std::vector<std::string> published_tf_frames;
 
   const auto& depth_sensors = _manager->depthSensors();
-  for (const auto& sensor : depth_sensors) {
+  for (std::size_t board_idx = 0; board_idx < depth_sensors.size(); ++board_idx) {
+    const auto& sensor = depth_sensors[board_idx];
     const auto& pose   = sensor.getGlobalPose();
-    const auto& idx    = sensor.getDeviceID().getIndex();
-    const auto idx_str = std::to_string(idx);
+    const std::string board_name = "board_" + std::to_string(board_idx);
 
     auto tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
     tf_broadcasters.push_back(tf_broadcaster);
@@ -114,7 +116,7 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
     geometry_msgs::msg::TransformStamped t;
     t.header.stamp    = this->now();
     t.header.frame_id = tf_name;
-    t.child_frame_id  = "sensor_" + idx_str;
+    t.child_frame_id  = board_name;
 
     t.transform.translation.x = pose.translation.x();
     t.transform.translation.y = pose.translation.y();
@@ -127,13 +129,26 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
     t.transform.rotation.w = q.w();
 
     tf_broadcaster->sendTransform(t);
+    published_tf_frames.push_back(t.child_frame_id);
 
     if (_enable_individual_publish) {
       sensor_msgs::msg::PointCloud2 individual_msg = pc2_msg;
       individual_msg.header.frame_id               = t.child_frame_id;
       _pc2_msg_individual_vec.push_back(individual_msg);
-      _pointcloud_pub_individual_vec.push_back(this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_individual/sensor_" + idx_str, 1));
+      _pointcloud_pub_individual_vec.push_back(this->create_publisher<sensor_msgs::msg::PointCloud2>("/sensors/tof_sensors/pcl_individual/" + board_name, 1));
     }
+  }
+
+  if (!published_tf_frames.empty()) {
+    std::ostringstream tf_stream;
+    tf_stream << "Publishing static TF frames: ";
+    for (std::size_t i = 0; i < published_tf_frames.size(); ++i) {
+      if (i > 0) {
+        tf_stream << ", ";
+      }
+      tf_stream << published_tf_frames[i];
+    }
+    RCLCPP_INFO_STREAM(this->get_logger(), tf_stream.str());
   }
 
   // Prepare thermal image publishers

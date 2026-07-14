@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   if (base.auto_discover) {
     RCLCPP_INFO(node->get_logger(), "Auto-discover mode enabled. Discovering hardware on configured interfaces...");
   }
-  configureTopology(*node, ns, factory, base.auto_discover, htpa32_defaults);
+  configureTopology(*node, ns, factory, base.auto_discover);
 
   // Start manager and set initial light state
   auto manager = std::make_unique<manager::MeasurementManager>(base.manager_params, factory);

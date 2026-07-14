@@ -69,7 +69,7 @@ The ROS2 node is configured for the current `edu_lib_sensorring` factory API.
 In non-auto-discover mode, each configured board is declared in two steps:
 
 1. `expectBoard(board_params)` declares the board pose and board-level information.
-2. `expectDevice(...)` is called once per enabled sensor type (`AnyDepthSensor`, `HTPA32`, `AnyLight`) to define which devices are expected on that board.
+2. `expectDevice(...)` is optionally called to define which devices are expected on that board.
 
 This replaces the older pattern where a board and a device list were passed together in one call.
 
@@ -111,14 +111,92 @@ pointcloud_sensor:
       interface_0:
         interface_type: "socketcan"
         interface_name: "can0"
-        orientation: "left"
-        nr_of_sensors: 3
-        sensors:
-          sensor_0:
+        nr_of_boards: 3
+        boards:
+          board_0:
+            board_type: "headlight"
+            expected_devices: ["any_depth", "htpa32", "any_light"]
+            orientation: "left"
             rotation: [90.0, 0.0, 45.0]
             translation: [0.1, 0.0, 0.05]
-          # ... more sensors
+          # ... more boards
 ```
+
+If `board_type` is omitted or left empty, the factory will match any compatible board. If `expected_devices` is an empty array, all discovered devices on the matched board are instantiated.
+
+## Parameter Reference
+
+The node reads all parameters below the `pointcloud_sensor` namespace.
+
+### base_setup
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `base_setup.timeout_ms` | integer | `1000` | Measurement manager timeout in milliseconds. |
+| `base_setup.repair_errors` | bool | `true` | Enables automatic recovery attempts inside the measurement manager. |
+| `base_setup.tf_name` | string | `"base_sensorring"` | Root frame used for published transforms and transformed point clouds. |
+| `base_setup.enforce_topology` | bool | `false` | Enables strict topology validation when `auto_discover` is `false`. |
+| `base_setup.auto_discover` | bool | `false` | If `true`, no boards are configured explicitly and all detected hardware is used. |
+| `base_setup.publishers.depth_individual` | bool | `true` | Publish one point cloud topic per detected depth sensor. |
+| `base_setup.publishers.depth_combined` | bool | `true` | Publish one transformed point cloud with all depth sensors combined. |
+| `base_setup.publishers.depth_raw` | bool | `true` | Publish one untransformed point cloud with all depth sensors combined. |
+
+### Device Defaults
+
+These parameters define default configuration values that are applied whenever a matching device is instantiated by the factory.
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `htpa32_config.auto_min_max` | bool | `true` | Automatically derive grayscale / false-color temperature limits from the image. |
+| `htpa32_config.use_eeprom_file` | bool | `false` | Load thermal EEPROM data from files instead of reading it from hardware at startup. |
+| `htpa32_config.use_calibration_file` | bool | `false` | Load saved thermal calibration data from files. |
+| `htpa32_config.eeprom_file_dir` | string | `""` | Directory containing stored EEPROM dumps for thermal sensors. |
+| `htpa32_config.calibration_file_dir` | string | `""` | Directory containing saved thermal calibration files. |
+| `htpa32_config.scale_t_min_deg` | double | `20.0` | Lower bound in degree Celsius for thermal image scaling when auto scaling is disabled. |
+| `htpa32_config.scale_t_max_deg` | double | `30.0` | Upper bound in degree Celsius for thermal image scaling when auto scaling is disabled. |
+| `htpa32_config.max_rate_hz` | double | `5.0` | Maximum measurement rate for HTPA32 thermal sensors. |
+| `vl53l8cx_config.max_rate_hz` | double | `15.0` | Maximum measurement rate for VL53L8CX depth sensors. |
+| `tmf8829_config.resolution_mode` | integer | `3` | TMF8829 resolution preset. `3` corresponds to `16x16`. |
+| `tmf8829_config.k_iterations` | integer | `0` | TMF8829 integration / iteration setting. |
+| `tmf8829_config.max_rate_hz` | double | `30.0` | Maximum measurement rate for TMF8829 depth sensors. |
+| `led_config.initial_mode` | integer | `0` | Initial light mode applied to all detected light devices when the node starts. Valid values: `0..12` (`0=Off`, `1=Dimmed`, `2=HighBeam`, `3=FlashAll`, `4=FlashLeft`, `5=FlashRight`, `6=Pulsation`, `7=Rotation`, `8=Running`, `9=MapDistance`, `10=FixedColor`, `11=PulsationColor`). |
+| `led_config.initial_color` | integer array `[r,g,b]` | `[0, 0, 0]` | Initial RGB color applied together with `initial_mode`. Each value must be in `[0, 255]`. |
+
+### topology
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `topology.nr_of_interfaces` | integer | `1` | Number of communication interfaces to configure. |
+| `topology.interfaces.interface_N.interface_type` | string | `"undefined"` | Interface backend. Supported values: `socketcan`, `usbtingo`. |
+| `topology.interfaces.interface_N.interface_name` | string | `"can0"` | OS-visible interface name, for example `can0` or a USB adapter name. |
+| `topology.interfaces.interface_N.enable_brs` | bool | `false` | Enables CAN-FD bitrate switching if the backend supports it. |
+| `topology.interfaces.interface_N.data_baudrate` | integer | `0` | Optional CAN-FD data baudrate override. |
+| `topology.interfaces.interface_N.sample_point` | double | `0.0` | Optional interface sample-point override. |
+| `topology.interfaces.interface_N.nr_of_boards` | integer | `1` | Number of expected boards on this interface when `auto_discover` is `false`. |
+
+Each configured board is declared below `topology.interfaces.interface_N.boards.board_M`.
+
+| Board Parameter | Type | Default | Description |
+|---|---|---|---|
+| `board_type` | string | `""` | Optional hardware board type constraint. Supported values: `headlight`, `taillight`, `sidepanel`, `minipanel`. If empty, any compatible board may match. |
+| `expected_devices` | string array | `[]` | Optional expected devices for that board. If empty, all discovered devices on the matched board are instantiated. |
+| `orientation` | string | `"none"` | Board orientation used by devices that need left/right aware processing. Supported values: `none`, `left`, `right`. |
+| `rotation` | double array `[roll,pitch,yaw]` | `[0.0, 0.0, 0.0]` | Board rotation in degrees. Applied in roll-pitch-yaw order. |
+| `translation` | double array `[x,y,z]` | `[0.0, 0.0, 0.0]` | Board translation in meters. |
+
+Supported `expected_devices` entries:
+
+| Value | Meaning |
+|---|---|
+| `vl53l8cx` | Require a VL53L8CX depth sensor. |
+| `tmf8829` | Require a TMF8829 depth sensor. |
+| `htpa32` | Require an HTPA32 thermal sensor. |
+| `ws2812b` | Require a WS2812b light device. |
+| `any_depth` | Accept any supported depth sensor on that board. |
+| `any_thermal` | Accept any supported thermal sensor on that board. |
+| `any_light` | Accept any supported light device on that board. |
+
+The aliases `tof`, `depth`, `thermal`, `light`, and `led` are also accepted by the node parser.
 
 ## Strict Mode
 

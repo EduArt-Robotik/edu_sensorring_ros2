@@ -7,11 +7,12 @@
         enforce_topology: false
         repair_errors: true
         timeout_ms: 1000
-        publishers:
-          depth_individual: true
-          depth_combined: true
-          depth_raw: false
+      publishers:
+        depth_individual: false
+        depth_combined: true
+        depth_raw: false
       htpa32_config:
+        enable: false
         auto_min_max: false
         use_eeprom_file: true
         use_calibration_file: true
@@ -21,13 +22,15 @@
         scale_t_max_deg: 35.0
         max_rate_hz: 5.0
       vl53l8cx_config:
+        enable: true
         max_rate_hz: 15.0
       tmf8829_config:
-        resolution_mode: 3 # 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
-        k_iterations: 0
-        max_rate_hz: 30.0
+        enable: true
+        resolution_mode: 5 # 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
+        k_iterations: 800
+        max_rate_hz: 15.0
       led_config:
-        initial_mode: 9 #		Off = 0, Dimmed = 1, HighBeam = 2, FlashAll = 3, FlashLeft = 4, FlashRight = 5, Pulsation = 6, Rotation = 7, Running = 8, MapDistance = 9
+        initial_mode: 9 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
         initial_color: [64, 64, 64]
       topology:
         nr_of_interfaces: 2
@@ -35,97 +38,77 @@
           interface_0:
             interface_type: "socketcan"
             interface_name: "eduart-can1"
-            enable_brs: false
-            nr_of_sensors: 6
-            sensors:
-              sensor_0:
-                enable_tof: true
-                enable_thermal: true # true
-                enable_light : true
+            enable_brs: true
+            data_baudrate: 3333333
+            sample_point: 0.95
+            nr_of_boards: 6
+            boards:
+              board_0: # Headlight front right
+                expected_devices: ["any_depth", "htpa32", "any_light"]
                 orientation: "right"
                 rotation: [-90.0, -19.7, -110.0]
-                translation: [0.183, -0.066, 0.044]
-              sensor_1:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
-                orientation: "right"
-                rotation: [81.563, 0.0, 35.0]
-                translation: [0.045, -0.106, 0.106]
-              sensor_2:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
-                orientation: "right"
-                rotation: [81.563, 0.0, -35.0]
-                translation: [0.000, -0.106, 0.106]
-              sensor_3:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
+                translation: [0.185, -0.066, 0.040]
+              board_1:
+                expected_devices: ["any_depth", "any_light"]
                 orientation: "right"
                 rotation: [90.000, 0.0, 0.0]
-                translation: [0.023, -0.108, 0.072]
-              sensor_4:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
+                translation: [0.025, -0.107, 0.070]
+              board_2: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
+                orientation: "right"
+                rotation: [0.0, -81.563, 125.0]
+                translation: [0.050, -0.109, 0.1125]
+              board_3:
+                expected_devices: ["any_depth", "any_light"]
+                orientation: "right"
+                rotation: [81.563, 0.0, -35.0]
+                translation: [0.000, -0.109, 0.1045]
+              board_4:  # Taillight rear right
+                expected_devices: ["any_depth", "any_light"]
                 orientation: "right"
                 rotation: [0.0, 90.0, 200.0]
-                translation: [-0.180, -0.066, 0.052]
-              sensor_5:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
+                translation: [-0.185, -0.066, 0.050]
+              board_5: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
                 orientation: "right"
-                rotation: [81.563, 0.0, -90.0]
-                translation: [-0.180, 0.000, 0.082]
+                rotation: [0.0, 81.563, -180.0]
+                translation: [-0.185, 0.000, 0.0735]
 
           interface_1:
             interface_type: "socketcan"
             interface_name: "eduart-can0"
-            enable_brs: false
-            nr_of_sensors: 6
-            sensors:
-              sensor_0:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
+            enable_brs: true
+            data_baudrate: 3333333
+            sample_point: 0.95
+            nr_of_boards: 6
+            boards:
+              board_0: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
                 orientation: "left"
-                rotation: [81.563, 0.0, 90.0]
-                translation: [0.175, 0.000, 0.081]
-              sensor_1:
-                enable_tof: true
-                enable_thermal: true # true
-                enable_light : true
+                rotation: [0.0, 81.563, 0.0]
+                translation: [0.185, 0.000, 0.0735]
+              board_1: # Headlight front left
+                expected_devices: ["any_depth", "htpa32", "any_light"]
                 orientation: "left"
                 rotation: [90.000, -19.7, 110.0]
-                translation: [0.183, 0.066, 0.044]
-              sensor_2:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
-                orientation: "left"
-                rotation: [81.563, 0.0, 145.0]
-                translation: [0.045, 0.106, 0.106]
-              sensor_3:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
-                orientation: "left"
-                rotation: [81.563, 0.0, 215.0]
-                translation: [0.000, 0.106, 0.106]
-              sensor_4:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
+                translation: [0.185, 0.066, 0.040]
+              board_2:
+                expected_devices: ["any_depth", "any_light"]
                 orientation: "left"
                 rotation: [90.000, 0.0, 180.0]
-                translation: [0.023, 0.108, 0.072]
-              sensor_5:
-                enable_tof: true
-                enable_thermal: false
-                enable_light : true
+                translation: [0.025, 0.107, 0.070]
+              board_3: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
+                orientation: "left"
+                rotation: [0.0, -81.563, -125.0]
+                translation: [0.050, 0.109, 0.1125]
+              board_4:
+                expected_devices: ["any_depth", "any_light"]
+                orientation: "left"
+                rotation: [81.563, 0.0, 215.0]
+                translation: [0.0, 0.109, 0.1045]
+              board_5:   # Taillight rear left
+                expected_devices: ["any_depth", "any_light"]
                 orientation: "left"
                 rotation: [0.0, -90.0, -20.0]
-                translation: [-0.180, 0.066, 0.052]
+                translation: [-0.185, 0.066, 0.050]

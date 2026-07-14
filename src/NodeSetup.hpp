@@ -66,9 +66,7 @@ com::InterfaceType parseInterfaceType(const std::string& type_str);
 /**
  * @brief Declares topology parameters, then configures @p factory with interfaces and
  *        (in non-auto-discover mode) expected sensor boards.
- *
- * @param htpa32_defaults  Default HTPA32 params used as base for per-interface orientation overrides.
  */
-void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFactory& factory, bool auto_discover, const device::HTPA32_Params& htpa32_defaults);
+void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFactory& factory, bool auto_discover);
 
 } // namespace eduart::sensorring
