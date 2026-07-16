@@ -31,7 +31,7 @@ public:
 private:
   void onLightColor(std_msgs::msg::ColorRGBA::SharedPtr msg);
 
-  void onStateChange(const manager::ManagerState state);
+  void onStateChange(manager::ManagerState state);
 
   void onDepthFrame(const std::vector<measurement::DepthMeasurement>& frame);
 

@@ -196,10 +196,7 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
   bool success = _manager->startMeasuring();
 
   if (success) {
-    while (_manager->isMeasuring() && rclcpp::ok()) {
-      rclcpp::spin_some(shared_from_this());
-    }
-
+    rclcpp::spin(shared_from_this());
     success = _manager->stopMeasuring();
   }
 
@@ -216,11 +213,16 @@ void SensorRingProxy::onLightColor(std_msgs::msg::ColorRGBA::SharedPtr msg) {
   }
 }
 
-void SensorRingProxy::onStateChange(const manager::ManagerState state) {
+void SensorRingProxy::onStateChange(manager::ManagerState state) {
   if (state < manager::ManagerState::Error) {
     RCLCPP_DEBUG_STREAM(this->get_logger(), "New MeasurementManager state: " << state);
   } else {
     RCLCPP_ERROR_STREAM(this->get_logger(), "New MeasurementManager state: " << state);
+  }
+
+  if(state == manager::ManagerState::Shutdown && rclcpp::ok()) {
+    RCLCPP_INFO(this->get_logger(), "MeasurementManager has shut down. Exiting ROS node.");
+    rclcpp::shutdown();
   }
 }
 

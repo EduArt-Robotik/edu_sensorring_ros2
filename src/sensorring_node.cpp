@@ -42,7 +42,5 @@ int main(int argc, char* argv[]) {
     l.setLight(light.mode, light.color[0], light.color[1], light.color[2]);
   }
 
-  const bool success = node->run(std::move(manager), base.tf_name, depth_publish.enable_individual, depth_publish.enable_combined, depth_publish.enable_raw);
-  rclcpp::shutdown();
-  return success ? 0 : 1;
+  return node->run(std::move(manager), base.tf_name, depth_publish.enable_individual, depth_publish.enable_combined, depth_publish.enable_raw) ? 0 : 1;
 }
