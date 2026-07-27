@@ -24,7 +24,6 @@ if(EXISTS "${_SENSORRING_LOCAL_DIR}/CMakeLists.txt")
   add_subdirectory(
     "${_SENSORRING_LOCAL_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/sensorring"
-    EXCLUDE_FROM_ALL
   )
 
 endif()
@@ -44,7 +43,7 @@ if(NOT TARGET sensorring::sensorring)
   FetchContent_Declare(
     sensorring_source
     URL
-    https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v4.0.0-alpha.6.zip
+    https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v4.0.0-alpha.8.zip
   )
   FetchContent_MakeAvailable(sensorring_source)
   cmake_policy(POP)
