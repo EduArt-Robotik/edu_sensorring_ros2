@@ -25,7 +25,7 @@ RUN apt update \
 RUN mkdir -p /home/$USER/eduart_ws/
 WORKDIR /home/$USER/eduart_ws
 
-RUN git clone --depth 1 --branch master https://github.com/hannesduske/libusbtingo.git \
+RUN git clone --depth 1 --branch v1.1.2 https://github.com/hannesduske/libusbtingo.git \
     && cd libusbtingo \
     && mkdir build \
     && cd build \
@@ -34,7 +34,7 @@ RUN git clone --depth 1 --branch master https://github.com/hannesduske/libusbtin
     && sudo cmake --install .
 
 # get the sensorring library from github
-RUN git clone --depth 1 --branch master https://github.com/EduArt-Robotik/edu_lib_sensorring.git \
+RUN git clone --depth 1 --branch v3.0.0 https://github.com/EduArt-Robotik/edu_lib_sensorring.git \
     && cd edu_lib_sensorring \
     && mkdir build \
     && cd build \
@@ -53,6 +53,6 @@ RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash \
     && source install/setup.bash"
 
 # add entry point
-COPY --chown=$USER edu_sensorring_ros2/docker/entrypoint /home/$USER/
+COPY --chown=$USER edu_sensorring_ros2/docker/demonstrator/entrypoint /home/$USER/
 RUN chmod a+x /home/$USER/entrypoint
-ENTRYPOINT [ "/home/user/entrypoint" ]
+ENTRYPOINT [ "/home/$USER/entrypoint" ]

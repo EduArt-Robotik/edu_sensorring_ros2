@@ -1,8 +1,8 @@
 services:
     edu_sensorring_ros2:
         build:
-          context: ../../
-          dockerfile: ./edu_sensorring_ros2/docker/Dockerfile
+          context: ../../../
+          dockerfile: ./edu_sensorring_ros2/docker/demonstrator/Dockerfile
         image: sensorring
         container_name: edu_sensorring_ros2-1.0.0
         #user: user
