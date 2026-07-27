@@ -1,5 +1,6 @@
 #include <sensorring/SensorRingFactory.hpp>
 #include <sensorring/manager/MeasurementManager.hpp>
+#include <sensorring/device/light/ws2812b/WS2812b_Device.hpp>
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -38,9 +39,7 @@ int main(int argc, char* argv[]) {
 
   // Start manager and set initial light state
   auto manager = std::make_unique<manager::MeasurementManager>(base.manager_params, factory);
-  for (auto& l : manager->lights()) {
-    l.setLight(light.mode, light.color[0], light.color[1], light.color[2]);
-  }
+  device::WS2812b_Device::setAllLights(light.mode, light.color[0], light.color[1], light.color[2]);
 
   return node->run(std::move(manager), base.tf_name, depth_publish.enable_individual, depth_publish.enable_combined, depth_publish.enable_raw) ? 0 : 1;
 }
