@@ -23,6 +23,6 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash \
     && source install/setup.bash
 
 # add entry point
-COPY --chown=$USER edu_sensorring_ros2/docker/entrypoint /home/$USER/
+COPY --chown=$USER edu_sensorring_ros2/docker/generic/entrypoint /home/$USER/
 RUN chmod a+x /home/$USER/entrypoint
 ENTRYPOINT [ "/home/user/entrypoint" ]
