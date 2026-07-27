@@ -78,6 +78,7 @@ install(
   DIRECTORY
     launch
     params
+    visualization
   DESTINATION share/${PROJECT_NAME}
 )
 
