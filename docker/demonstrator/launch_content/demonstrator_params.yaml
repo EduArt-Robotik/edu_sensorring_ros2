@@ -26,11 +26,11 @@
         max_rate_hz: 15.0
       tmf8829_config:
         enable: true
-        resolution_mode: 5 # 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
-        k_iterations: 800
+        resolution_mode: 3 # 0=8x8, 1=8x8LR, 2=8x8HA, 3=16x16, 4=16x16HA, 5=32x32, 6=32x32HA, 7=48x32, 8=48x32HA
+        k_iterations: 0
         max_rate_hz: 15.0
       led_config:
-        initial_mode: 9 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
+        initial_mode: 10 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
         initial_color: [64, 64, 64]
       topology:
         nr_of_interfaces: 1
