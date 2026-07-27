@@ -21,27 +21,6 @@ RUN apt update \
 
 #USER $USER
 
-# get the usbtingo library from github
-RUN mkdir -p /home/$USER/eduart_ws/
-WORKDIR /home/$USER/eduart_ws
-
-RUN git clone --depth 1 --branch v1.1.2 https://github.com/hannesduske/libusbtingo.git \
-    && cd libusbtingo \
-    && mkdir build \
-    && cd build \
-    && cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF\
-    && cmake --build . -j4 \
-    && sudo cmake --install .
-
-# get the sensorring library from github
-RUN git clone --depth 1 --branch v3.0.0 https://github.com/EduArt-Robotik/edu_lib_sensorring.git \
-    && cd edu_lib_sensorring \
-    && mkdir build \
-    && cd build \
-    && cmake .. -DBUILD_SHARED_LIBS=OFF -DVERBOSE=OFF -DCMAKE_BUILD_TYPE=Release -DUSE_USBTINGO=ON\
-    && cmake --build . -j4 \
-    && sudo cmake --install .
-
 # set up ros workspace
 RUN mkdir -p /home/$USER/ros/src/
 COPY edu_sensorring_ros2 /home/$USER/ros/src/edu_sensorring_ros2
@@ -55,4 +34,4 @@ RUN bash -c "source /opt/ros/$ROS_DISTRO/setup.bash \
 # add entry point
 COPY --chown=$USER edu_sensorring_ros2/docker/demonstrator/entrypoint /home/$USER/
 RUN chmod a+x /home/$USER/entrypoint
-ENTRYPOINT [ "/home/$USER/entrypoint" ]
+ENTRYPOINT [ "/home/user/entrypoint" ]

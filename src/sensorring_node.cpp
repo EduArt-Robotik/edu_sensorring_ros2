@@ -22,6 +22,7 @@ int main (int argc, char* argv[]){
 	std::string param_namespace = "pointcloud_sensor";
 	measurement_node->declare_parameter(param_namespace + ".base_setup.timeout_ms", 1000);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.enable_brs", false);
+	measurement_node->declare_parameter(param_namespace + ".base_setup.repair_errors", true);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.tf_name", "base_sensorring");
 	measurement_node->declare_parameter(param_namespace + ".base_setup.print_topology", true);
 	measurement_node->declare_parameter(param_namespace + ".base_setup.enforce_topology", false);
@@ -39,6 +40,7 @@ int main (int argc, char* argv[]){
 	ring_params.timeout                 = std::chrono::milliseconds(measurement_node->get_parameter(param_namespace + ".base_setup.timeout_ms").as_int());
 	tf_name                             = measurement_node->get_parameter(param_namespace + ".base_setup.tf_name").as_string();
 	manager_params.enable_brs       	  = measurement_node->get_parameter(param_namespace + ".base_setup.enable_brs").as_bool();
+	manager_params.repair_errors        = measurement_node->get_parameter(param_namespace + ".base_setup.repair_errors").as_bool();
 	manager_params.print_topology	      = measurement_node->get_parameter(param_namespace + ".base_setup.print_topology").as_bool();
 	manager_params.enforce_topology	    = measurement_node->get_parameter(param_namespace + ".base_setup.enforce_topology").as_bool();
 	manager_params.frequency_tof_hz     = measurement_node->get_parameter(param_namespace + ".base_setup.frequency_tof_hz").as_double();
@@ -149,13 +151,13 @@ int main (int argc, char* argv[]){
 			thermal_params.t_min_deg_c          = thermal_t_min;
 			thermal_params.t_max_deg_c          = thermal_t_max;
 
-			sensor::LightParams led_params;
-			led_params.enable = enable_light;
-			led_params.orientation = orientation;
+			sensor::LightParams light_params;
+			light_params.enable = enable_light;
+			light_params.orientation = orientation;
 					
 			board_params.tof_params     = tof_params;
 			board_params.thermal_params = thermal_params;
-			board_params.led_params     = led_params;
+			board_params.light_params   = light_params;
 
 			bus_params.board_param_vec.push_back(board_params);
 			sensor_idx++;

@@ -5,10 +5,6 @@
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2_ros/static_transform_broadcaster.h"
 
-#include <sensorring/Logger.hpp>
-#include <sensorring/LoggerClient.hpp>
-#include <sensorring/MeasurementClient.hpp>
-
 namespace eduart{
 
 namespace sensorring{
@@ -68,7 +64,6 @@ bool SensorRingProxy::run(std::unique_ptr<manager::MeasurementManager> manager, 
 	field_sigma.offset = 16;
 	field_sigma.datatype = sensor_msgs::msg::PointField::FLOAT32;
 	field_sigma.count = 1;
-
 
 	sensor_msgs::msg::PointField field_idx;
 	field_idx.name = "sensor_idx";
@@ -197,7 +192,7 @@ void SensorRingProxy::onStateChange(const manager::ManagerState state){
 	}
 }
 
-void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec){
+void SensorRingProxy::onRawTofMeasurement(const std::vector<measurement::TofMeasurement>& measurement_vec){
 	if(!measurement_vec.empty()){
 
 		int idx = 0;
@@ -205,12 +200,12 @@ void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasuremen
 
 		std::size_t point_count = 0;
 		for(const auto& measurement : measurement_vec){
-			point_count += measurement.point_cloud.size();
+			point_count += measurement.point_cloud.data.size();
 
 			// prepare individual pc2 messages
 			auto& msg        = _pc2_msg_individual_vec.at(idx);
 			msg.header.stamp = now;
-			msg.width        = measurement.point_cloud.size();
+			msg.width        = measurement.point_cloud.data.size();
 			msg.row_step     = msg.width * msg.point_step;
 			msg.data.resize(msg.row_step);
 			idx++;
@@ -241,12 +236,12 @@ void SensorRingProxy::onRawTofMeasurement(std::vector<measurement::TofMeasuremen
 	}
 }
 
-void SensorRingProxy::onTransformedTofMeasurement(std::vector<measurement::TofMeasurement> measurement_vec){
+void SensorRingProxy::onTransformedTofMeasurement(const std::vector<measurement::TofMeasurement>& measurement_vec){
 	if(!measurement_vec.empty()){
 
 		std::size_t point_count = 0;
 		for(const auto& measurement : measurement_vec){
-			point_count += measurement.point_cloud.size();
+			point_count += measurement.point_cloud.data.size();
 		}
 
 		_pc2_msg_transformed.header.stamp  = this->now();
@@ -263,7 +258,7 @@ void SensorRingProxy::onTransformedTofMeasurement(std::vector<measurement::TofMe
 	}
 }
 
-void SensorRingProxy::onThermalMeasurement(std::vector<measurement::ThermalMeasurement> measurement_vec){
+void SensorRingProxy::onThermalMeasurement(const std::vector<measurement::ThermalMeasurement>& measurement_vec){
 	int idx = 0;
 	for(const auto& measurement : measurement_vec){
 		// prepare and publish grayscale image
@@ -288,7 +283,7 @@ void SensorRingProxy::onThermalMeasurement(std::vector<measurement::ThermalMeasu
 	}
 }
 
-void SensorRingProxy::onOutputLog(const logger::LogVerbosity verbosity, const std::string msg){
+void SensorRingProxy::onOutputLog(const logger::LogVerbosity verbosity, const std::string& msg){
 	switch(verbosity){
 		case logger::LogVerbosity::Debug:
 			RCLCPP_DEBUG(this->get_logger(), msg.c_str());
@@ -324,15 +319,15 @@ void SensorRingProxy::startThermalCalibration(	const std::shared_ptr<edu_sensorr
 
 std::uint8_t* SensorRingProxy::packPointData(const measurement::TofMeasurement& src, std::uint8_t* dst)
 {
-		for (const auto& p : src.point_cloud) {
-			float* f = reinterpret_cast<float*>(dst);
-			f[0] = static_cast<float>(p.point.data[0]);
-			f[1] = static_cast<float>(p.point.data[1]);
-			f[2] = static_cast<float>(p.point.data[2]);
-			f[3] = static_cast<float>(p.raw_distance);
-			f[4] = static_cast<float>(p.sigma);
-			reinterpret_cast<int32_t*>(f + 5)[0] = p.user_idx;
-			dst += sizeof(measurement::PointData);
+	for (const auto& p : src.point_cloud.data) {
+		float* f = reinterpret_cast<float*>(dst);
+		f[0] = static_cast<float>(p.point.data[0]);
+		f[1] = static_cast<float>(p.point.data[1]);
+		f[2] = static_cast<float>(p.point.data[2]);
+		f[3] = static_cast<float>(p.raw_distance);
+		f[4] = static_cast<float>(p.sigma);
+		reinterpret_cast<int32_t*>(f + 5)[0] = p.user_idx;
+		dst += sizeof(measurement::PointData);
 	}
 
 	return dst;
