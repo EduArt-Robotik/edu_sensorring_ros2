@@ -4,7 +4,7 @@
       base_setup:
         tf_name: "base_sensorring"
         auto_discover: false
-        enforce_topology: false
+        enforce_topology: true
         repair_errors: true
         timeout_ms: 1000
       publishers:
@@ -12,7 +12,7 @@
         depth_combined: true
         depth_raw: false
       htpa32_config:
-        enable: false
+        enable: true
         auto_min_max: false
         use_eeprom_file: true
         use_calibration_file: true
@@ -31,14 +31,53 @@
         max_rate_hz: 15.0
       led_config:
         distance_map_max_brightness: 50
-        distance_map_lower_m: 0.1
-        distance_map_upper_m: 0.5
+        distance_map_lower_m: 0.5
+        distance_map_upper_m: 1.0
         initial_mode: 9 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
         initial_color: [64, 64, 64]
       topology:
         nr_of_interfaces: 2
         interfaces:
           interface_0:
+            interface_type: "socketcan"
+            interface_name: "eduart-can0"
+            enable_brs: true
+            data_baudrate: 3333333
+            sample_point: 0.95
+            nr_of_boards: 6
+            boards:
+              board_0: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
+                orientation: "left"
+                rotation: [0.0, 81.563, 0.0]
+                translation: [0.185, 0.000, 0.0735]
+              board_1: # Headlight front left
+                expected_devices: ["any_depth", "any_light", "any_thermal"]
+                orientation: "left"
+                rotation: [90.000, -19.7, 110.0]
+                translation: [0.185, 0.066, 0.040]
+              board_2: # Sidepanel
+                expected_devices: ["any_depth", "any_light"]
+                orientation: "left"
+                rotation: [90.000, 0.0, 180.0]
+                translation: [0.025, 0.107, 0.070]
+              board_3: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
+                orientation: "left"
+                rotation: [0.0, -81.563, -125.0]
+                translation: [0.050, 0.109, 0.1125]
+              board_4: # TMF8829 Minipanel
+                expected_devices: ["any_depth"]
+                orientation: "left"
+                rotation: [0.0, -81.563, -55.0]
+                translation: [0.0, 0.109, 0.1125]
+              board_5:   # Taillight rear left
+                expected_devices: ["any_depth", "any_light"]
+                orientation: "left"
+                rotation: [0.0, -90.0, -20.0]
+                translation: [-0.185, 0.066, 0.050]
+
+          interface_1:
             interface_type: "socketcan"
             interface_name: "eduart-can1"
             enable_brs: true
@@ -47,7 +86,7 @@
             nr_of_boards: 6
             boards:
               board_0: # Headlight front right
-                expected_devices: ["any_depth", "any_thermal", "any_light"]
+                expected_devices: ["any_depth", "any_light"] #"any_thermal]
                 orientation: "right"
                 rotation: [-90.0, -19.7, -110.0]
                 translation: [0.185, -0.066, 0.040]
@@ -76,42 +115,3 @@
                 orientation: "right"
                 rotation: [0.0, 81.563, -180.0]
                 translation: [-0.185, 0.000, 0.0735]
-
-          interface_1:
-            interface_type: "socketcan"
-            interface_name: "eduart-can0"
-            enable_brs: true
-            data_baudrate: 3333333
-            sample_point: 0.95
-            nr_of_boards: 6
-            boards:
-              board_0: # TMF8829 Minipanel
-                expected_devices: ["any_depth"]
-                orientation: "left"
-                rotation: [0.0, 81.563, 0.0]
-                translation: [0.185, 0.000, 0.0735]
-              board_1: # Headlight front left
-                expected_devices: ["any_depth", "any_thermal", "any_light"]
-                orientation: "left"
-                rotation: [90.000, -19.7, 110.0]
-                translation: [0.185, 0.066, 0.040]
-              board_2: # Sidepanel
-                expected_devices: ["any_depth", "any_light"]
-                orientation: "left"
-                rotation: [90.000, 0.0, 180.0]
-                translation: [0.025, 0.107, 0.070]
-              board_3: # TMF8829 Minipanel
-                expected_devices: ["any_depth"]
-                orientation: "left"
-                rotation: [0.0, -81.563, -125.0]
-                translation: [0.050, 0.109, 0.1125]
-              board_4: # TMF8829 Minipanel
-                expected_devices: ["any_depth"]
-                orientation: "left"
-                rotation: [0.0, -81.563, -55.0]
-                translation: [0.0, 0.109, 0.1125]
-              board_5:   # Taillight rear left
-                expected_devices: ["any_depth", "any_light"]
-                orientation: "left"
-                rotation: [0.0, -90.0, -20.0]
-                translation: [-0.185, 0.066, 0.050]
