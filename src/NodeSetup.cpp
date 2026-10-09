@@ -139,8 +139,15 @@ device::TMF8829_Params readTmf8829Params(rclcpp::Node& node, const std::string& 
 LightSetup readLightSetup(rclcpp::Node& node, const std::string& ns) {
   node.declare_parameter(ns + ".led_config.initial_mode", 0);
   node.declare_parameter(ns + ".led_config.initial_color", std::vector<int>{ 0, 0, 0 });
+  const device::LightParams defaults;
+  node.declare_parameter(ns + ".led_config.distance_map_lower_m", defaults.distance_map_lower_m);
+  node.declare_parameter(ns + ".led_config.distance_map_upper_m", defaults.distance_map_upper_m);
+  node.declare_parameter(ns + ".led_config.distance_map_max_brightness", defaults.distance_map_max_brightness);
 
   LightSetup result;
+  result.params.distance_map_lower_m = node.get_parameter(ns + ".led_config.distance_map_lower_m").as_double();
+  result.params.distance_map_upper_m = node.get_parameter(ns + ".led_config.distance_map_upper_m").as_double();
+  result.params.distance_map_max_brightness = node.get_parameter(ns + ".led_config.distance_map_max_brightness").as_int();
   const int initial_mode = node.get_parameter(ns + ".led_config.initial_mode").as_int();
   constexpr int min_user_mode = 0;
   constexpr int max_user_mode = 11; // 0=Off ... 11=PulsationColor

@@ -161,6 +161,9 @@ These parameters define default configuration values that are applied whenever a
 | `tmf8829_config.max_rate_hz` | double | `30.0` | Maximum measurement rate for TMF8829 depth sensors. |
 | `led_config.initial_mode` | integer | `0` | Initial light mode applied to all detected light devices when the node starts. Valid values: `0..12` (`0=Off`, `1=Dimmed`, `2=HighBeam`, `3=FlashAll`, `4=FlashLeft`, `5=FlashRight`, `6=Pulsation`, `7=Rotation`, `8=Running`, `9=MapDistance`, `10=FixedColor`, `11=PulsationColor`). |
 | `led_config.initial_color` | integer array `[r,g,b]` | `[0, 0, 0]` | Initial RGB color applied together with `initial_mode`. Each value must be in `[0, 255]`. |
+| `led_config.distance_map_lower_m` | double | `0.1` | Distance in meters at or below which MapDistance LEDs are red. |
+| `led_config.distance_map_upper_m` | double | `0.5` | Distance in meters at or above which MapDistance LEDs are green. |
+| `led_config.distance_map_max_brightness` | integer | `50` | Peak MapDistance LED channel brightness on the `0..255` scale. `0` disables the indicator. |
 
 ### topology
 

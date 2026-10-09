@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
   factory.setDefaultDeviceParams(htpa32_defaults);
   factory.setDefaultDeviceParams(vl53l8cx_defaults);
   factory.setDefaultDeviceParams(tmf8829_defaults);
+  factory.setDefaultDeviceParams(light.params);
 
   if (base.auto_discover) {
     RCLCPP_INFO(node->get_logger(), "Auto-discover mode enabled. Discovering hardware on configured interfaces...");

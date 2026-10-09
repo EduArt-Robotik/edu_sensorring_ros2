@@ -4,6 +4,7 @@
 #include <sensorring/device/depth/tmf8829/TMF8829_Params.hpp>
 #include <sensorring/device/depth/vl53l8cx/VL53L8CX_Params.hpp>
 #include <sensorring/device/light/LightMode.hpp>
+#include <sensorring/device/light/LightParams.hpp>
 #include <sensorring/device/thermal/htpa32/HTPA32_Params.hpp>
 #include <sensorring/interface/ComInterfaceID.hpp>
 #include <sensorring/interface/InterfaceParams.hpp>
@@ -29,6 +30,7 @@ struct BaseSetup {
  * @brief Holds the result of reading the LED/light ROS parameters.
  */
 struct LightSetup {
+  device::LightParams params;
   device::LightMode mode;
   std::vector<long> color; ///< RGB values, each in [0, 255]
 };
