@@ -73,8 +73,9 @@ device::DeviceType parseExpectedDeviceType(const std::string& device_type_str) {
 } // namespace
 
 BaseSetup readBaseSetup(rclcpp::Node& node, const std::string& ns) {
-  node.declare_parameter(ns + ".base_setup.timeout_ms", 1000);
-  node.declare_parameter(ns + ".base_setup.repair_errors", true);
+  const manager::ManagerParams defaults;
+  node.declare_parameter(ns + ".base_setup.timeout_ms", defaults.timeout.count());
+  node.declare_parameter(ns + ".base_setup.repair_errors", defaults.repair_errors);
   node.declare_parameter(ns + ".base_setup.tf_name", "base_sensorring");
   node.declare_parameter(ns + ".base_setup.enforce_topology", false);
   node.declare_parameter(ns + ".base_setup.auto_discover", false);
@@ -89,15 +90,16 @@ BaseSetup readBaseSetup(rclcpp::Node& node, const std::string& ns) {
 }
 
 device::HTPA32_Params readHtpa32Params(rclcpp::Node& node, const std::string& ns) {
-  node.declare_parameter(ns + ".htpa32_config.enable", true);
-  node.declare_parameter(ns + ".htpa32_config.auto_min_max", true);
-  node.declare_parameter(ns + ".htpa32_config.use_eeprom_file", false);
-  node.declare_parameter(ns + ".htpa32_config.use_calibration_file", false);
-  node.declare_parameter(ns + ".htpa32_config.eeprom_file_dir", "");
-  node.declare_parameter(ns + ".htpa32_config.calibration_file_dir", "");
-  node.declare_parameter(ns + ".htpa32_config.scale_t_min_deg", 20.0);
-  node.declare_parameter(ns + ".htpa32_config.scale_t_max_deg", 30.0);
-  node.declare_parameter(ns + ".htpa32_config.max_rate_hz", 5.0);
+  const device::HTPA32_Params defaults;
+  node.declare_parameter(ns + ".htpa32_config.enable", defaults.enable);
+  node.declare_parameter(ns + ".htpa32_config.auto_min_max", defaults.auto_min_max);
+  node.declare_parameter(ns + ".htpa32_config.use_eeprom_file", defaults.use_eeprom_file);
+  node.declare_parameter(ns + ".htpa32_config.use_calibration_file", defaults.use_calibration_file);
+  node.declare_parameter(ns + ".htpa32_config.eeprom_file_dir", defaults.eeprom_dir);
+  node.declare_parameter(ns + ".htpa32_config.calibration_file_dir", defaults.calibration_dir);
+  node.declare_parameter(ns + ".htpa32_config.scale_t_min_deg", defaults.t_min_deg_c);
+  node.declare_parameter(ns + ".htpa32_config.scale_t_max_deg", defaults.t_max_deg_c);
+  node.declare_parameter(ns + ".htpa32_config.max_rate_hz", defaults.max_rate_hz);
 
   device::HTPA32_Params params;
   params.enable               = node.get_parameter(ns + ".htpa32_config.enable").as_bool();
@@ -113,8 +115,9 @@ device::HTPA32_Params readHtpa32Params(rclcpp::Node& node, const std::string& ns
 }
 
 device::VL53L8CX_Params readVl53l8cxParams(rclcpp::Node& node, const std::string& ns) {
-  node.declare_parameter(ns + ".vl53l8cx_config.enable", true);
-  node.declare_parameter(ns + ".vl53l8cx_config.max_rate_hz", 15.0);
+  const device::VL53L8CX_Params defaults;
+  node.declare_parameter(ns + ".vl53l8cx_config.enable", defaults.enable);
+  node.declare_parameter(ns + ".vl53l8cx_config.max_rate_hz", defaults.max_rate_hz);
 
   device::VL53L8CX_Params params;
   params.enable      = node.get_parameter(ns + ".vl53l8cx_config.enable").as_bool();
@@ -123,10 +126,11 @@ device::VL53L8CX_Params readVl53l8cxParams(rclcpp::Node& node, const std::string
 }
 
 device::TMF8829_Params readTmf8829Params(rclcpp::Node& node, const std::string& ns) {
-  node.declare_parameter(ns + ".tmf8829_config.enable", true);
-  node.declare_parameter(ns + ".tmf8829_config.resolution_mode", 3); // 0=8x8 … 8=48x32HA
-  node.declare_parameter(ns + ".tmf8829_config.k_iterations", 0);
-  node.declare_parameter(ns + ".tmf8829_config.max_rate_hz", 30.0);
+  const device::TMF8829_Params defaults;
+  node.declare_parameter(ns + ".tmf8829_config.enable", defaults.enable);
+  node.declare_parameter(ns + ".tmf8829_config.resolution_mode", static_cast<int>(defaults.resolution_mode));
+  node.declare_parameter(ns + ".tmf8829_config.k_iterations", static_cast<int>(defaults.k_iterations));
+  node.declare_parameter(ns + ".tmf8829_config.max_rate_hz", defaults.max_rate_hz);
 
   device::TMF8829_Params params;
   params.enable          = node.get_parameter(ns + ".tmf8829_config.enable").as_bool();
@@ -137,7 +141,7 @@ device::TMF8829_Params readTmf8829Params(rclcpp::Node& node, const std::string& 
 }
 
 LightSetup readLightSetup(rclcpp::Node& node, const std::string& ns) {
-  node.declare_parameter(ns + ".led_config.initial_mode", 0);
+  node.declare_parameter(ns + ".led_config.initial_mode", static_cast<int>(device::LightMode::Off) - 2);
   node.declare_parameter(ns + ".led_config.initial_color", std::vector<int>{ 0, 0, 0 });
   const device::LightParams defaults;
   node.declare_parameter(ns + ".led_config.distance_map_lower_m", defaults.distance_map_lower_m);
@@ -182,9 +186,10 @@ DepthPublishSetup readDepthPublishSetup(rclcpp::Node& node, const std::string& n
 }
 
 com::InterfaceType parseInterfaceType(const std::string& type_str) {
-  if (type_str == "socketcan")
+  const std::string normalized = normalizeToken(type_str);
+  if (normalized == "socketcan")
     return com::InterfaceType::SocketCan;
-  if (type_str == "usbtingo")
+  if (normalized == "usbtingo")
     return com::InterfaceType::UsbTingo;
   return com::InterfaceType::Undefined;
 }
@@ -196,12 +201,13 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
 
   for (int i = 0; i < nr_of_interfaces; i++) {
     const std::string iface_prefix = topology_namespace + ".interface_" + std::to_string(i);
+    const com::SocketCanParams interface_defaults;
 
-    node.declare_parameter(iface_prefix + ".interface_type", "undefined");
-    node.declare_parameter(iface_prefix + ".interface_name", "can0");
-    node.declare_parameter(iface_prefix + ".enable_brs", false);
-    node.declare_parameter(iface_prefix + ".data_baudrate", 0);
-    node.declare_parameter(iface_prefix + ".sample_point", 0.0);
+    node.declare_parameter(iface_prefix + ".interface_type", com::toString(com::InterfaceType::Undefined));
+    node.declare_parameter(iface_prefix + ".interface_name", interface_defaults.name);
+    node.declare_parameter(iface_prefix + ".enable_brs", interface_defaults.respond_with_brs);
+    node.declare_parameter(iface_prefix + ".data_baudrate", static_cast<int>(interface_defaults.data_bitrate));
+    node.declare_parameter(iface_prefix + ".sample_point", static_cast<double>(interface_defaults.data_sample_point));
 
     const std::string iface_name        = node.get_parameter(iface_prefix + ".interface_name").as_string();
     const std::string iface_type_str    = node.get_parameter(iface_prefix + ".interface_type").as_string();
@@ -228,12 +234,13 @@ void configureTopology(rclcpp::Node& node, const std::string& ns, SensorRingFact
     const std::string boards_prefix = iface_prefix + ".boards";
     for (int j = 0; j < nr_of_boards; j++) {
       const std::string board_prefix = boards_prefix + ".board_" + std::to_string(j);
+      const board::SensorBoardParams board_defaults;
 
-      node.declare_parameter(board_prefix + ".board_type", "");
+      node.declare_parameter(board_prefix + ".board_type", board::toString(board_defaults.board_type));
       node.declare_parameter(board_prefix + ".expected_devices", std::vector<std::string>{});
-      node.declare_parameter(board_prefix + ".orientation", "none");
-      node.declare_parameter(board_prefix + ".rotation", std::vector<double>{ 0.0, 0.0, 0.0 });
-      node.declare_parameter(board_prefix + ".translation", std::vector<double>{ 0.0, 0.0, 0.0 });
+      node.declare_parameter(board_prefix + ".orientation", board::toString(board_defaults.orientation));
+      node.declare_parameter(board_prefix + ".rotation", std::vector<double>{ board_defaults.rotation[0], board_defaults.rotation[1], board_defaults.rotation[2] });
+      node.declare_parameter(board_prefix + ".translation", std::vector<double>{ board_defaults.translation[0], board_defaults.translation[1], board_defaults.translation[2] });
 
       const std::string board_type_str           = node.get_parameter(board_prefix + ".board_type").as_string();
       const std::vector<std::string> expected_devices = node.get_parameter(board_prefix + ".expected_devices").as_string_array();
