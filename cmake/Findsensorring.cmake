@@ -25,13 +25,12 @@ if(EXISTS "${_SENSORRING_LOCAL_DIR}/CMakeLists.txt")
     "${_SENSORRING_LOCAL_DIR}"
     "${CMAKE_CURRENT_BINARY_DIR}/sensorring"
   )
-
 endif()
 
 
 # 2. Try an installed package
 if(NOT TARGET sensorring::sensorring)
-  find_package(sensorring CONFIG QUIET)
+  find_package(sensorring 4.0.0 CONFIG QUIET)
 endif()
 
 
@@ -43,7 +42,7 @@ if(NOT TARGET sensorring::sensorring)
   FetchContent_Declare(
     sensorring_source
     URL
-    https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v4.0.0-alpha.8.zip
+    https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v4.0.0.zip
   )
   FetchContent_MakeAvailable(sensorring_source)
   cmake_policy(POP)
