@@ -1,0 +1,26 @@
+services:
+    edu_sensorring_ros2:
+        build:
+          context: ../../../
+          dockerfile: ./edu_sensorring_ros2/docker/generic/Dockerfile
+        image: sensorring
+        container_name: edu_sensorring_ros2-4.0.0
+        user: user
+        restart: always
+        privileged: true
+        ipc: host
+        pid: host
+        mem_limit: 300mb
+        environment:
+            - EDU_ROBOT_NAMESPACE=${EDU_ROBOT_NAMESPACE}
+            - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+            - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+        network_mode: "host"
+        command: bash -c 'cd /home/user/ros/launch_content; ros2 launch sensorring.launch.py'
+        # command: /bin/bash
+        # stdin_open: true
+        volumes:
+            - './launch_content:/home/user/ros/launch_content'
+            - '${HOME}/.eduart/sensorring/:/home/user/.eduart/sensorring/'
+        devices:
+            - '/dev:/dev'

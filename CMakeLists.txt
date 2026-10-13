@@ -10,7 +10,7 @@ ENDIF()
 
 #########################################################
 # project
-set(CMAKE_PROJECT_VERSION_MAJOR 3)
+set(CMAKE_PROJECT_VERSION_MAJOR 4)
 set(CMAKE_PROJECT_VERSION_MINOR 0)
 set(CMAKE_PROJECT_VERSION_PATCH 0)
 set(CMAKE_PROJECT_VERSION "${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION_MINOR}.${CMAKE_PROJECT_VERSION_PATCH}")
@@ -32,31 +32,16 @@ endif()
 
 #########################################################
 # find dependencies
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
-find_package(sensorring QUIET)
-
-if(NOT sensorring_found)
-  message(STATUS "Did not find edu_lib_sensorring. Cloning it from GitHub ...")
-
-  set(SENSORRING_BUILD_SHARED_LIBS ON) # important
-  set(SENSORRING_INSTALL_DEV_COMPONENTS OFF)
-  set(SENSORRING_USE_USBTINGO ON)
-
-  include(FetchContent)
-  FetchContent_Declare(
-    sensorring
-    URL      https://github.com/EduArt-Robotik/edu_lib_sensorring/archive/refs/tags/v3.0.1.zip
-    DOWNLOAD_EXTRACT_TIMESTAMP OFF
-  )
-
-  FetchContent_MakeAvailable(sensorring)
-  add_library(sensorring::sensorring ALIAS sensorring)
-endif()
+find_package(sensorring REQUIRED)
 
 #########################################################
 # generate services
@@ -73,6 +58,7 @@ rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typ
 add_executable(${PROJECT_NAME}_node
   src/sensorring_node.cpp
   src/SensorRingProxy.cpp
+  src/NodeSetup.cpp
 )
 
 target_include_directories(${PROJECT_NAME}_node PRIVATE
@@ -92,6 +78,7 @@ install(
   DIRECTORY
     launch
     params
+    visualization
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -14,7 +14,7 @@ def generate_launch_description():
     parameter_file = PathJoinSubstitution([
       package_path,
       'params',
-      'edu_bot_sensorring_params.yaml'
+      'auto_discover_params.yaml'
     ])
 
     sensorring = Node(
@@ -23,7 +23,7 @@ def generate_launch_description():
       name='edu_sensorring_ros2_node',
       parameters=[parameter_file],
       #arguments=['--ros-args', '--log-level', 'DEBUG'],
-      prefix='gdbserver localhost:3000',
+      #prefix='gdbserver localhost:3000',
       namespace=EnvironmentVariable('EDU_ROBOT_NAMESPACE', default_value=""),
       output='screen',
       on_exit=Shutdown()

@@ -1,0 +1,15 @@
+[Unit]
+Description=Allow Docker to access X server
+After=graphical.target network.target display-manager.service
+Requires=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/xhost +local:docker
+User=user
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/user/.Xauthority
+RemainAfterExit=yes
+
+[Install]
+WantedBy=graphical.target
