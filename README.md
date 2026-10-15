@@ -163,7 +163,7 @@ These parameters define default configuration values that are applied whenever a
 | `led_config.initial_color` | integer array `[r,g,b]` | `[0, 0, 0]` | Initial RGB color applied together with `initial_mode`; each value must be in `[0, 255]`. |
 | `led_config.distance_map_lower_m` | double | `0.1` | Distance in meters at or below which MapDistance LEDs are red. |
 | `led_config.distance_map_upper_m` | double | `0.5` | Distance in meters at or above which MapDistance LEDs are green. |
-| `led_config.distance_map_max_brightness` | integer | `50` | Peak MapDistance LED channel brightness on the `0..255` scale. `0` disables the indicator. |
+| `led_config.max_brightness` | integer | `50` | Peak LED channel brightness on the `0..255` scale. `0` disables the indicator. |
 
 ### topology
 

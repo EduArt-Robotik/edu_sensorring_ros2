@@ -30,7 +30,7 @@
         k_iterations: 0
         max_rate_hz: 30.0
       led_config:
-        distance_map_max_brightness: 50
+        max_brightness: 50
         distance_map_lower_m: 0.1
         distance_map_upper_m: 0.5
         initial_mode: 0 # Off

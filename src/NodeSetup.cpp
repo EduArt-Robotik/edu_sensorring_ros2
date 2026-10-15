@@ -146,12 +146,12 @@ LightSetup readLightSetup(rclcpp::Node& node, const std::string& ns) {
   const device::LightParams defaults;
   node.declare_parameter(ns + ".led_config.distance_map_lower_m", defaults.distance_map_lower_m);
   node.declare_parameter(ns + ".led_config.distance_map_upper_m", defaults.distance_map_upper_m);
-  node.declare_parameter(ns + ".led_config.distance_map_max_brightness", defaults.distance_map_max_brightness);
+  node.declare_parameter(ns + ".led_config.max_brightness", defaults.max_brightness);
 
   LightSetup result;
   result.params.distance_map_lower_m = node.get_parameter(ns + ".led_config.distance_map_lower_m").as_double();
   result.params.distance_map_upper_m = node.get_parameter(ns + ".led_config.distance_map_upper_m").as_double();
-  result.params.distance_map_max_brightness = node.get_parameter(ns + ".led_config.distance_map_max_brightness").as_int();
+  result.params.max_brightness = node.get_parameter(ns + ".led_config.max_brightness").as_int();
   const int initial_mode = node.get_parameter(ns + ".led_config.initial_mode").as_int();
   constexpr int min_user_mode = 0;
   constexpr int max_user_mode = 11; // 0=Off ... 11=PulsationColor

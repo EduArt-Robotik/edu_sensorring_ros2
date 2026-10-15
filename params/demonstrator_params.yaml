@@ -30,7 +30,7 @@
         k_iterations: 0
         max_rate_hz: 15.0
       led_config:
-        distance_map_max_brightness: 50
+        max_brightness: 50
         distance_map_lower_m: 0.1
         distance_map_upper_m: 0.5
         initial_mode: 10 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
