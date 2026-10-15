@@ -30,10 +30,10 @@
         k_iterations: 0
         max_rate_hz: 15.0
       led_config:
-        max_brightness: 50
-        distance_map_lower_m: 0.1
-        distance_map_upper_m: 0.5
-        initial_mode: 10 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
+        max_brightness: 40
+        distance_map_lower_m: 0.2
+        distance_map_upper_m: 1.0
+        initial_mode: 9 # Off=0, Dimmed=1, HighBeam=2, FlashAll=3, FlashLeft=4, FlashRight=5, Pulsation=6, Rotation=7, Running=8, MapDistance=9, FixedColor=10, PulsationColor=11
         initial_color: [64, 64, 64]
       topology:
         nr_of_interfaces: 1
@@ -41,48 +41,48 @@
           interface_0:
             interface_type: "socketcan"
             interface_name: "eduart-can1"
-            enable_brs: false
-            data_baudrate: 3333333
+            enable_brs: true
+            data_baudrate: 2500000
             sample_point: 0.95
             nr_of_boards: 8
             boards:
               board_0:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "left"
                 rotation: [-90.0, -19.0, -100.0]
                 translation: [0.0925, -0.031, 0.05]
               board_1:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "left"
                 rotation: [0.0, 90.0, -80.0]
                 translation: [0.025, -0.0725, 0.07]
               board_2:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "left"
                 rotation: [0.0, 90.0, -100.0]
                 translation: [-0.025, -0.0725, 0.07]
               board_3:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "left"
                 rotation: [0.0, -90.0, 20.0]
                 translation: [-0.0925, -0.0325, 0.054]
               board_4:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "right"
                 rotation: [0.0, 90.0, 160.0]
                 translation: [-0.0925, 0.0325, 0.054]
               board_5:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "right"
                 rotation: [-90.0, 0.0, 10.0]
                 translation: [-0.0275, 0.0725, 0.067]
               board_6:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "right"
                 rotation: [-90.0, 0.0, -10.0]
                 translation: [0.0275, 0.0725, 0.067]
               board_7:
-                expected_devices: ["any_depth"]
+                #expected_devices: ["any_depth"]
                 orientation: "right"
                 rotation: [90.0, -19.0, 100.0]
                 translation: [0.0925, 0.031, 0.05]
